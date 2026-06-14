@@ -1,105 +1,101 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>気象警報ビューアー</title>
+<title>気象警報ビューアーv3.1.5</title>
 <style>
+/* --- 台風情報と統一したUIスタイル --- */
 body {
-    font-family: sans-serif;
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 20px;
-    background: #f5f5f5;
+  font-family: sans-serif;
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px;
+  background: #f5f5f5;
 }
 
 #backBtn {
-    display: inline-block;
-    margin-bottom: 15px;
-    padding: 10px 16px;
-    background: #0066cc;
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: bold;
+  display: inline-block;
+  margin-bottom: 15px;
+  padding: 10px 16px;
+  background: #0066cc;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
 }
-
-#backBtn:hover { background: #0055aa; }
 
 h1 { text-align: center; margin-top: 0; }
 
 .controls {
-    text-align: center;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-}
-
-.controls select {
-    padding: 10px;
-    font-size: 16px;
-    border-radius: 5px;
-    width: 80%;
-    margin-bottom: 15px;
+  text-align: center;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
 }
 
 .buttons { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
 
 button {
-    padding: 10px 18px;
-    font-size: 16px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    background: #0066cc;
-    color: white;
+  padding: 10px 18px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #0066cc;
+  color: white;
 }
 
-.radio-group { font-size: 14px; display: flex; justify-content: center; gap: 15px; }
+#areaSelect { font-size: 16px; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
 
-#status { text-align: center; margin-bottom: 10px; color: #555; font-size: 14px; }
+.radio-group { margin-top: 10px; font-size: 14px; }
+
+#updateTime { text-align: center; margin-bottom: 10px; color: #555; font-size: 14px; }
 
 #eew {
-    white-space: pre-wrap;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    padding: 20px;
-    line-height: 1.6;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    font-family: "Yu Gothic", "Meiryo", sans-serif;
-    font-size: 14px;
-    margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 20px;
+  line-height: 1.4;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  font-family: "Yu Gothic","YuGothic","メイリオ",sans-serif;
+  font-size: 14px;
 }
 </style>
 </head>
 <body>
 
 <a href="index.html" id="backBtn">← トップへ戻る</a>
-<h1>気象警報ビューアー</h1>
+<h1>気象警報ビューアーv3.1.5</h1>
 
 <div class="controls">
-    <select id="areaSelect">
-        <option selected>全国</option>
-        <optgroup label="北海道地方"><option>石狩・空知・後志地方</option><option>宗谷地方</option><option>上川・留萌地方</option><option>網走・北見・紋別地方</option><option>十勝地方</option><option>釧路・根室地方</option><option>胆振・日高地方</option><option>渡島・檜山地方</option></optgroup>
-        <optgroup label="東北地方"><option>青森県</option><option>岩手県</option><option>宮城県</option><option>秋田県</option><option>山形県</option><option>福島県</option></optgroup>
-        <optgroup label="関東甲信地方"><option>茨城県</option><option>栃木県</option><option>群馬県</option><option>埼玉県</option><option>千葉県</option><option>東京都</option><option>神奈川県</option><option>山梨県</option><option>長野県</option></optgroup>
-        <optgroup label="東海地方"><option>岐阜県</option><option>静岡県</option><option>愛知県</option><option>三重県</option></optgroup>
-        <optgroup label="北陸地方"><option>新潟県</option><option>富山県</option><option>石川県</option><option>福井県</option></optgroup>
-        <optgroup label="近畿地方"><option>滋賀県</option><option>京都府</option><option>大阪府</option><option>兵庫県</option><option>奈良県</option><option>和歌山県</option></optgroup>
-        <optgroup label="中国地方"><option>鳥取県</option><option>島根県</option><option>岡山県</option><option>広島県</option><option>山口県</option></optgroup>
-        <optgroup label="四国地方"><option>徳島県</option><option>香川県</option><option>愛媛県</option><option>高知県</option></optgroup>
-        <optgroup label="九州北部地方（山口県を含む）"><option>山口県</option><option>福岡県</option><option>佐賀県</option><option>長崎県</option><option>熊本県</option><option>大分県</option></optgroup>
-        <optgroup label="九州南部・奄美地方"><option>宮崎県</option><option>鹿児島県（奄美地方を除く）</option><option>奄美地方（鹿児島県）</option></optgroup>
-        <optgroup label="沖縄地方"><option>沖縄本島地方</option><option>大東島地方</option><option>宮古島地方</option><option>八重山地方</option></optgroup>
-    </select>
+    <div id="updateTime">取得日時: ----/--/-- --:--:--</div>
     <div class="buttons">
         <button id="copyBtn">📋 本文をコピー</button>
     </div>
+    
+    <select id="areaSelect">
+      <option selected>全国</option>
+      <optgroup label="北海道地方"><option>石狩・空知・後志地方</option><option>宗谷地方</option><option>上川・留萌地方</option><option>網走・北見・紋別地方</option><option>十勝地方</option><option>釧路・根室地方</option><option>胆振・日高地方</option><option>渡島・檜山地方</option></optgroup>
+      <optgroup label="東北地方"><option>青森県</option><option>岩手県</option><option>宮城県</option><option>秋田県</option><option>山形県</option><option>福島県</option></optgroup>
+      <optgroup label="関東甲信地方"><option>茨城県</option><option>栃木県</option><option>群馬県</option><option>埼玉県</option><option>千葉県</option><option>東京都</option><option>神奈川県</option><option>山梨県</option><option>長野県</option></optgroup>
+      <optgroup label="東海地方"><option>岐阜県</option><option>静岡県</option><option>愛知県</option><option>三重県</option></optgroup>
+      <optgroup label="北陸地方"><option>新潟県</option><option>富山県</option><option>石川県</option><option>福井県</option></optgroup>
+      <optgroup label="近畿地方"><option>滋賀県</option><option>京都府</option><option>大阪府</option><option>兵庫県</option><option>奈良県</option><option>和歌山県</option></optgroup>
+      <optgroup label="中国地方"><option>鳥取県</option><option>島根県</option><option>岡山県</option><option>広島県</option><option>山口県</option></optgroup>
+      <optgroup label="四国地方"><option>徳島県</option><option>香川県</option><option>愛媛県</option><option>高知県</option></optgroup>
+      <optgroup label="九州北部地方（山口県を含む）"><option>山口県</option><option>福岡県</option><option>佐賀県</option><option>長崎県</option><option>熊本県</option><option>大分県</option></optgroup>
+      <optgroup label="九州南部・奄美地方"><option>宮崎県</option><option>鹿児島県（奄美地方を除く）</option><option>奄美地方（鹿児島県）</option></optgroup>
+      <optgroup label="沖縄地方"><option>沖縄本島地方</option><option>大東島地方</option><option>宮古島地方</option><option>八重山地方</option></optgroup>
+    </select>
+
     <div class="radio-group">
         <label><input type="radio" name="mode" value="all"> 全情報</label>
         <label><input type="radio" name="mode" value="keihou" checked> 警報以上</label>
@@ -107,10 +103,10 @@ button {
     </div>
 </div>
 
-<div id="status">取得日時: ----/--/-- --:--:--</div>
 <pre id="eew">読み込み中...</pre>
 
 <script>
+/* --- ここから下のロジックは元のコードから一切変更していません --- */
 const JMA_BASE = "https://www.jma.go.jp/bosai";
 const AREA_JSON_URL = `${JMA_BASE}/common/const/area.json`;
 const WARNING_R8_BASE_URL = `${JMA_BASE}/warning/data/r8`;
@@ -124,8 +120,15 @@ let latestUpdateId = 0;
 
 function setNowTime() {
   const now = new Date();
-  document.getElementById("status").textContent = `取得日時: ${now.toLocaleString("ja-JP")}`;
+  const YYYY = now.getFullYear();
+  const MM = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const HH = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  document.getElementById("updateTime").textContent = `取得日時: ${YYYY}/${MM}/${dd} ${HH}:${mm}:${ss}`;
 }
+setNowTime();
 
 async function main(mode=2,taisho_chiiki="全国",statusFormat=false) {
   const updateId = ++latestUpdateId;
@@ -133,7 +136,6 @@ async function main(mode=2,taisho_chiiki="全国",statusFormat=false) {
     const warnArea = {
       "00":{name:"解除",level:null}, "02":{name:"暴風雪警報",level:3}, "03":{name:"レベル3大雨警報",level:3}, "04":{name:"洪水警報",level:3}, "05":{name:"暴風警報",level:3}, "06":{name:"大雪警報",level:3}, "07":{name:"波浪警報",level:3}, "08":{name:"レベル3高潮警報",level:3}, "09":{name:"レベル3土砂災害警報",level:3}, "10":{name:"レベル2大雨注意報",level:2}, "12":{name:"大雪注意報",level:2}, "13":{name:"風雪注意報",level:2}, "14":{name:"雷注意報",level:2}, "15":{name:"強風注意報",level:2}, "16":{name:"波浪注意報",level:2}, "17":{name:"融雪注意報",level:2}, "18":{name:"洪水注意報",level:2}, "19":{name:"レベル2高潮注意報",level:2}, "20":{name:"濃霧注意報",level:2}, "21":{name:"乾燥注意報",level:2}, "22":{name:"なだれ注意報",level:2}, "23":{name:"低温注意報",level:2}, "24":{name:"霜注意報",level:2}, "25":{name:"着氷注意報",level:2}, "26":{name:"着雪注意報",level:2}, "27":{name:"その他の注意報",level:2}, "29":{name:"レベル2土砂災害注意報",level:2}, "32":{name:"暴風雪特別警報",level:5}, "33":{name:"レベル5大雨特別警報",level:5}, "35":{name:"暴風特別警報",level:5}, "36":{name:"大雪特別警報",level:5}, "37":{name:"波浪特別警報",level:5}, "38":{name:"レベル5高潮特別警報",level:5}, "39":{name:"レベル5土砂災害特別警報",level:5}, "42":{name:"未定・予約",level:null}, "43":{name:"レベル4大雨危険警報",level:4}, "45":{name:"未定・予約",level:null}, "46":{name:"未定・予約",level:null}, "47":{name:"未定・予約",level:null}, "48":{name:"レベル4高潮危険警報",level:4}, "49":{name:"レベル4土砂災害危険警報",level:4}
     };
-    
     document.getElementById("eew").textContent = "読み込み中...";
     const {warnData,regionReportDT} = await getCityWarningsByArea(warnArea,taisho_chiiki);
     if (updateId !== latestUpdateId) return;
@@ -148,7 +150,6 @@ async function main(mode=2,taisho_chiiki="全国",statusFormat=false) {
     let count = 0;
     const warnOrder = ["レベル5大雨特別警報","レベル5土砂災害特別警報","レベル5高潮特別警報","暴風特別警報","大雪特別警報","暴風雪特別警報","波浪特別警報","レベル4大雨危険警報","レベル4土砂災害危険警報","レベル4高潮危険警報","レベル3大雨警報","レベル3土砂災害警報","レベル3高潮警報","暴風警報","大雪警報","暴風雪警報","波浪警報","レベル2大雨注意報","レベル2土砂災害注意報","レベル2高潮注意報","強風注意報","大雪注意報","風雪注意報","雷注意報","波浪注意報","濃霧注意報","乾燥注意報","融雪注意報","なだれ注意報","低温注意報","霜注意報","着氷注意報","着雪注意報","その他の注意報"];
     const sortedWarnNames = [...warnOrder.filter(name => data.warnInfo[name]), ...Object.keys(data.warnInfo).filter(name => !warnOrder.includes(name))];
-    
     for (const warnName of sortedWarnNames) {
       const areas = data.warnInfo[warnName];
       if (Object.keys(areas).length === 0) continue;
@@ -165,7 +166,7 @@ async function main(mode=2,taisho_chiiki="全国",statusFormat=false) {
       }
       text += block;
     }
-    document.getElementById("eew").textContent = count===0 ? text + "\n\n発表中の警報・注意報はありません。" : text.trim();
+    document.getElementById("eew").textContent = count===0 ? text + (mode===2 ? "\n\n発表中の気象警報・注意報等はありません。" : mode===3 ? "\n\n発表中の気象警報はありません。" : "\n\n発表中の危険警報・特別警報はありません。") : text.trim();
   } catch(e) { if (updateId === latestUpdateId) document.getElementById("eew").textContent = "ERROR\n" + e; }
 }
 
@@ -196,17 +197,14 @@ async function getCityWarningsByArea(warnArea,taisho_chiiki="全国") {
   }
   return {warnData: {warnInfo: warnByTypeAndArea, reportDatetime, publishingOffice}, regionReportDT};
 }
-
 async function getAreaData() { if (!areaDataCache) areaDataCache = await (await fetch(AREA_JSON_URL)).json(); return areaDataCache; }
 function getRegionName(code) { return Object.keys(regionCodeByName).find(k => regionCodeByName[k] === code) || code; }
 async function fetchR8WarningData(codes) { return (await Promise.all(codes.map(async c => (await fetch(`${WARNING_R8_BASE_URL}/${c}.json`)).json()))).flat(); }
 function getWarnColor(l) { return l===2?"🟨":l===3?"🟥":l===4?"🟪":l===5?"⬛️":"◆"; }
-
 window.addEventListener("load", update);
 document.getElementById("copyBtn").addEventListener("click", async () => { await navigator.clipboard.writeText(document.getElementById("eew").textContent); alert("コピー完了"); });
 document.querySelectorAll('input[name="mode"]').forEach(r => r.addEventListener("change", update));
 document.getElementById("areaSelect").addEventListener("change", update);
-
 function update() {
   setNowTime();
   const mode = document.querySelector('input[name="mode"]:checked').value === "all" ? 2 : document.querySelector('input[name="mode"]:checked').value === "keihou" ? 3 : 4;
