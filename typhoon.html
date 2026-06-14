@@ -8,14 +8,31 @@
 <style>
 body{
     font-family:sans-serif;
-    max-width:800px;
+    max-width:900px;
     margin:40px auto;
     padding:20px;
     background:#f5f5f5;
 }
 
+#backBtn{
+    display:inline-block;
+    margin-bottom:15px;
+    padding:10px 16px;
+    background:#0066cc;
+    color:white;
+    text-decoration:none;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:bold;
+}
+
+#backBtn:hover{
+    background:#0055aa;
+}
+
 h1{
     text-align:center;
+    margin-top:0;
 }
 
 .buttons{
@@ -56,6 +73,10 @@ button:hover{
 </style>
 </head>
 <body>
+
+<a href="index.html" id="backBtn">
+← トップへ戻る
+</a>
 
 <h1>台風情報</h1>
 
@@ -103,7 +124,6 @@ async function getTyphoonInfo() {
 
         let targetEntry = null;
 
-        // 実況優先
         targetEntry = entries.find(entry => {
             const title =
                 entry.getElementsByTagName("title")[0]?.textContent || "";
@@ -112,7 +132,6 @@ async function getTyphoonInfo() {
                    title.includes("実況");
         });
 
-        // なければ予報
         if (!targetEntry) {
             targetEntry = entries.find(entry => {
                 const title =
