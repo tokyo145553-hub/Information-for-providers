@@ -38,12 +38,13 @@ box-shadow:0 4px 12px rgba(0,0,0,.08);border:1px solid #dbe5ef;transition:.25s; 
 .card i{font-size:50px;margin-bottom:15px}
 .card h3{font-size:18px;margin-bottom:10px}
 
-/* 配色ルール: 紫=発表状況、青=転載可 */
+/* 配色ルール */
 .weather-card,.typhoon-card,.tornado-card{border-top:7px solid #006837}
 .weather,.typhoon,.tornado{color:#006837}
 .tags span{display:inline-block;margin:2px;padding:3px 6px;border-radius:4px;font-size:10px;color:#fff;font-weight:bold}
 .tag-status{background:#6633cc;} /* 発表状況 */
 .tag-copy{background:#0066cc;}   /* 転載可 */
+.tag-unavailable{background:#cc0000;} /* 一部取得不可 */
 
 footer{text-align:center;color:#666;font-size:12px;padding:20px}
 </style>
@@ -90,6 +91,15 @@ footer{text-align:center;color:#666;font-size:12px;padding:20px}
             <h3>気象防災速報<br>(竜巻注意)</h3>
             <div class="tags">
                 <span class="tag-status">発表状況確認</span>
+                <span class="tag-copy">転載可</span>
+            </div>
+        </a>
+
+        <a href="kaisetsu.html" class="card weather-card">
+            <i class="fa-solid fa-file-lines weather"></i>
+            <h3>気象解説情報<br>(地方・全般)</h3>
+            <div class="tags">
+                <span class="tag-unavailable">一部取得不可</span>
                 <span class="tag-copy">転載可</span>
             </div>
         </a>
