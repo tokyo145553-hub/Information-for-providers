@@ -19,11 +19,9 @@ html { scroll-behavior: smooth; }
 
 body {
     margin: 0;
-    padding: 0;
     font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
     background: var(--bg-color);
     color: var(--text-color);
-    line-height: 1.6;
 }
 
 /* ================= HEADER ================= */
@@ -34,7 +32,7 @@ header {
     padding: 20px 6%;
     background: linear-gradient(135deg, #001f4d, var(--primary-color));
     color: #fff;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    position: relative;
 }
 
 .header-left {
@@ -49,7 +47,6 @@ header {
     border-radius: 50%;
     background: #fff;
     padding: 4px;
-    object-fit: contain;
 }
 
 .header-title h1 {
@@ -58,14 +55,98 @@ header {
 }
 
 .header-title p {
-    opacity: 0.8;
     font-size: 12px;
     margin: 0;
+    opacity: 0.8;
 }
 
 #clock {
     font-family: monospace;
-    font-size: 1.1rem;
+}
+
+/* ================= MENU BUTTON ================= */
+.menu-btn {
+    position: absolute;
+    right: 20px;
+    top: 18px;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+/* ================= OVERLAY ================= */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: none;
+    z-index: 999;
+}
+
+.overlay.active {
+    display: block;
+}
+
+/* ================= SIDE MENU ================= */
+.side-menu {
+    position: fixed;
+    top: 0;
+    right: -320px;
+    width: 300px;
+    height: 100%;
+    background: #fff;
+    box-shadow: -5px 0 20px rgba(0,0,0,0.25);
+    transition: 0.3s;
+    z-index: 1000;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.side-menu.active {
+    right: 0;
+}
+
+.side-menu h3 {
+    margin-top: 10px;
+    color: var(--primary-color);
+}
+
+/* ================= ACCORDION ================= */
+.accordion {
+    border-top: 1px solid #ddd;
+    margin-top: 10px;
+}
+
+.accordion-item {
+    margin-top: 8px;
+}
+
+.accordion-btn {
+    width: 100%;
+    text-align: left;
+    padding: 12px;
+    background: #f4f7fb;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.accordion-content {
+    display: none;
+    padding-left: 10px;
+    margin-top: 5px;
+}
+
+.accordion-content a {
+    display: block;
+    padding: 8px;
+    text-decoration: none;
+    color: var(--text-color);
+    border-radius: 6px;
+}
+
+.accordion-content a:hover {
+    background: #eef3ff;
 }
 
 /* ================= NAV ================= */
@@ -80,18 +161,11 @@ header {
     background: #fff;
     color: var(--primary-color);
     border: 2px solid var(--primary-color);
-    text-decoration: none;
     border-radius: 30px;
     font-weight: bold;
-    transition: 0.3s;
 }
 
-.nav-btn:hover {
-    background: var(--primary-color);
-    color: #fff;
-}
-
-/* ================= TITLE ================= */
+/* ================= GRID ================= */
 .section-title {
     text-align: center;
     margin: 35px 0 20px;
@@ -99,131 +173,63 @@ header {
     color: var(--primary-color);
 }
 
-/* ================= GRID ================= */
 .grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 22px;
     padding: 0 6% 50px;
-    max-width: 1300px;
-    margin: auto;
 }
 
-/* ================= CARD ================= */
+/* ================= CARD（タグ維持） ================= */
 .card {
     background: #fff;
     border-radius: 18px;
     padding: 25px 18px;
+    text-align: center;
     text-decoration: none;
     color: var(--text-color);
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    border: 1px solid rgba(0,0,0,0.05);
     transition: 0.25s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
 }
 
 .card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 12px 25px rgba(0,0,0,0.12);
 }
 
 .card i {
     font-size: 38px;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     color: var(--accent-color);
 }
 
-.card h3 {
-    font-size: 17px;
-    margin-bottom: 12px;
-}
-
-/* ================= TAGS ================= */
 .tags {
     display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
     justify-content: center;
+    gap: 5px;
+    flex-wrap: wrap;
 }
 
 .tags span {
+    font-size: 11px;
     padding: 4px 7px;
     border-radius: 6px;
-    font-size: 11px;
     color: #fff;
-    font-weight: bold;
 }
 
 .tag-status { background: #6633cc; }
 .tag-copy { background: #0066cc; }
 .tag-unavailable { background: #cc0000; }
 
-/* ================= FOOTER ================= */
-footer {
-    text-align: center;
-    padding: 25px;
-    font-size: 12px;
-    color: #888;
-    border-top: 1px solid #ddd;
-}
-
 /* ================= MOBILE ================= */
 @media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+        padding: 0 15px;
+    }
 
     header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
-        padding: 15px;
-    }
-
-    .header-title h1 {
-        font-size: 18px;
-    }
-
-    #clock {
-        align-self: flex-end;
-        font-size: 14px;
-    }
-
-    .nav-btn {
-        display: block;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-        padding: 0 15px 40px;
-    }
-
-    .card {
-        padding: 20px 15px;
-    }
-
-    .card i {
-        font-size: 32px;
-    }
-
-    .section-title {
-        font-size: 22px;
-    }
-}
-
-/* ================= LARGE SCREEN ================= */
-@media (min-width: 1400px) {
-
-    .grid {
-        grid-template-columns: repeat(4, 1fr);
-        max-width: 1500px;
-    }
-
-    header {
-        padding: 20px 10%;
     }
 }
 </style>
@@ -233,19 +239,53 @@ footer {
 
 <header>
     <div class="header-left">
-        <img src="images/teb.png.JPG" class="logo" alt="TEB">
+        <img src="images/teb.png.JPG" class="logo">
         <div class="header-title">
             <h1>提供者向け情報サイト</h1>
             <p>TokyoEastBranch Provider Portal</p>
         </div>
     </div>
+
     <div id="clock">--:--:--</div>
+
+    <div class="menu-btn" onclick="toggleMenu()">
+        <i class="fa-solid fa-bars"></i>
+    </div>
 </header>
 
+<div class="overlay" onclick="toggleMenu()"></div>
+
+<!-- ================= SIDE MENU ================= -->
+<div class="side-menu" id="menu">
+    <h3>メニュー</h3>
+
+    <!-- 気象情報（折りたたみ） -->
+    <div class="accordion">
+
+        <div class="accordion-item">
+            <button class="accordion-btn" onclick="toggleAccordion(this)">
+                🌤 気象情報（詳細）
+            </button>
+
+            <div class="accordion-content">
+
+                <a href="#weather-section" onclick="toggleMenu()">気象メニューTOP</a>
+                <a href="weather.html">気象警報</a>
+                <a href="tenki.html">天気予報</a>
+                <a href="typhoon.html">台風情報</a>
+                <a href="tornado.html">竜巻注意情報</a>
+                <a href="https://script.google.com/macros/s/AKfycbwoh1YsazOyU86oMUv0RJSMhfBXs036Rz0eoi1iz6l8MruUU3oIJV0n8FOp8QCZZq6fNQ/exec">
+                    気象解説情報（地方・全般）
+                </a>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
 <nav class="nav-menu">
-    <a href="#weather-section" class="nav-btn">
-        <i class="fa-solid fa-arrow-down"></i> 気象情報一覧
-    </a>
+    <a href="#weather-section" class="nav-btn">気象情報一覧</a>
 </nav>
 
 <section id="weather-section">
@@ -302,18 +342,30 @@ footer {
     </div>
 </section>
 
-<footer>
-    &copy; TokyoEastBranch All Rights Reserved.
+<footer style="text-align:center;padding:20px;color:#888;">
+    &copy; TokyoEastBranch
 </footer>
 
 <script>
 function updateClock(){
-    const n = new Date();
     document.getElementById("clock").textContent =
-        n.toLocaleTimeString('ja-JP');
+        new Date().toLocaleTimeString('ja-JP');
 }
-setInterval(updateClock, 1000);
+setInterval(updateClock,1000);
 updateClock();
+
+/* メニュー開閉 */
+function toggleMenu(){
+    document.getElementById("menu").classList.toggle("active");
+    document.querySelector(".overlay").classList.toggle("active");
+}
+
+/* アコーディオン */
+function toggleAccordion(btn){
+    const content = btn.nextElementSibling;
+    content.style.display =
+        content.style.display === "block" ? "none" : "block";
+}
 </script>
 
 </body>
