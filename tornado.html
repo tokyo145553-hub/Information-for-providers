@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>竜巻注意情報</title>
+<title>気象防災速報(竜巻注意）</title>
 <style>
     body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
     #backBtn { display: inline-block; margin-bottom: 15px; padding: 10px 16px; background: #0066cc; color: white; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: bold; }
@@ -19,7 +19,7 @@
 <body>
 
 <a href="index.html" id="backBtn">← トップへ戻る</a>
-<h1>竜巻注意情報</h1>
+<h1>気象防災速報(竜巻注意）</h1>
 
 <div class="buttons">
     <button onclick="getTatsumakiInfo()">🔄 更新</button>
@@ -46,11 +46,11 @@ async function getTatsumakiInfo() {
         const entries = Array.from(xmlDoc.getElementsByTagName("entry"));
 
         const tornadoEntries = entries.filter(e => 
-            e.getElementsByTagName("title")[0]?.textContent === "竜巻注意情報"
+            e.getElementsByTagName("title")[0]?.textContent === "気象防災速報(竜巻注意）"
         ).slice(0, 5);
 
         if (tornadoEntries.length === 0) {
-            resultDiv.innerHTML = "<p>現在、発表されている竜巻注意情報はありません。</p>";
+            resultDiv.innerHTML = "<p>現在、発表されている気象防災速報(竜巻注意）はありません。</p>";
             return;
         }
 
