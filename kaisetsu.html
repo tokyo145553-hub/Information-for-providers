@@ -1,85 +1,167 @@
+<!-- =========================================================
+     index.html
+     ========================================================= -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>気象解説情報</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
 <style>
-  body{ font-family:sans-serif; max-width:900px; margin:40px auto; padding:20px; background:#f5f5f5; }
-  #backBtn{ display:inline-block; margin-bottom:15px; padding:10px 16px; background:#0066cc; color:white; text-decoration:none; border-radius:8px; font-size:14px; font-weight:bold; }
-  h1{ text-align:center; margin-top:0; }
-  .buttons{ display:flex; justify-content:center; gap:10px; margin-bottom:15px; }
-  button{ padding:10px 18px; font-size:16px; border:none; border-radius:8px; cursor:pointer; }
-  #status{ text-align:center; margin-bottom:10px; color:green; font-size:14px; }
-  .info-table{ background:white; border:1px solid #ccc; border-radius:10px; padding:20px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-  .item-card{ margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #eee; }
-  .copy-mini-btn{ padding:6px 12px; font-size:12px; background:#238636; color:white; border:none; border-radius:4px; cursor:pointer; }
+body{
+font-family:sans-serif;
+background:#0d1117;
+color:#c9d1d9;
+margin:0;
+padding:15px;
+}
+
+h2{
+border-bottom:2px solid #2ecc71;
+padding-bottom:6px;
+}
+
+#status{
+font-size:12px;
+color:#aaa;
+margin-bottom:10px;
+}
+
+.topbar{
+margin-bottom:15px;
+}
+
+.reload-btn{
+background:#238636;
+color:white;
+border:none;
+padding:8px 14px;
+border-radius:6px;
+cursor:pointer;
+font-size:14px;
+}
+
+.reload-btn:hover{
+opacity:0.9;
+}
+
+.item{
+background:#161b22;
+margin:10px 0;
+padding:12px;
+border-radius:6px;
+}
+
+.copy-btn{
+margin-top:10px;
+padding:5px 10px;
+cursor:pointer;
+}
 </style>
 </head>
+
 <body>
 
-<a href="index.html" id="backBtn">← トップへ戻る</a>
-<h1>気象解説情報</h1>
-<div class="buttons"><button onclick="loadData()">🔄 更新</button></div>
-<div id="status"></div>
-<div id="result" class="info-table">読み込み待機中...</div>
+<h2>⛅ 全国の気象情報</h2>
+
+<div class="topbar">
+  <button class="reload-btn" onclick="load()">
+    🔄 手動更新
+  </button>
+</div>
+
+<div id="status">手動更新してください</div>
+
+<div id="list">未取得</div>
 
 <script>
-async function loadData() {
-    const result = document.getElementById("result");
-    const status = document.getElementById("status");
-    const FEED_URL = "https://www.data.jma.go.jp/developer/xml/feed/extra_l.xml";
 
-    status.innerText = "取得中...";
-    try {
-        const feedRes = await fetch(FEED_URL);
-        const xmlText = await feedRes.text();
-        const xml = new DOMParser().parseFromString(xmlText, "text/xml");
-        const entries = Array.from(xml.getElementsByTagName("entry"));
+function toJST(u){
 
-        // 解説情報の抽出（全般・地方気象解説情報）
-        const filtered = entries.filter(e => {
-            const title = e.getElementsByTagName("title")[0].textContent;
-            return title.includes("解説情報");
-        });
+  const d = new Date(u);
 
-        result.innerHTML = "";
-        for (const entry of filtered) {
-            const title = entry.getElementsByTagName("title")[0].textContent;
-            const link = entry.getElementsByTagName("link")[0].getAttribute("href");
-            
-            // 詳細データ取得
-            const detailRes = await fetch(link);
-            const detailXml = new DOMParser().parseFromString(await detailRes.text(), "text/xml");
-            const body = detailXml.getElementsByTagName("Text")[0]?.textContent || "内容取得不可";
-            const headline = detailXml.getElementsByTagName("Headline")[0]?.textContent || "見出しなし";
-
-            const card = document.createElement("div");
-            card.className = "item-card";
-            const fullText = `【${headline}】\n\n${body}`;
-            
-            card.innerHTML = `
-                <h3>${title}</h3>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong>${headline}</strong>
-                    <button class="copy-mini-btn" onclick="copyText('${fullText.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">📋コピー</button>
-                </div>
-                <p style="font-size:13px; color:#666; white-space:pre-wrap;">${body}</p>
-            `;
-            result.appendChild(card);
-        }
-        status.innerText = "最終更新: " + new Date().toLocaleString();
-    } catch(e) {
-        result.innerHTML = "直接取得に失敗しました。<br>※ブラウザの制限または接続状況を確認してください。";
-        status.innerText = "取得失敗";
-    }
+  return d.toLocaleString('ja-JP',{
+    timeZone:'Asia/Tokyo',
+    day:'numeric',
+    hour:'2-digit',
+    minute:'2-digit'
+  }).replace('/','日 ');
 }
 
-function copyText(text) {
-    navigator.clipboard.writeText(text);
-    alert("コピーしました");
+function show(data){
+
+  const list=document.getElementById("list");
+
+  list.innerHTML="";
+
+  if(!data || data.length===0){
+
+    list.innerHTML="情報なし";
+    return;
+  }
+
+  data.forEach(d=>{
+
+    const div=document.createElement("div");
+
+    div.className="item";
+
+    const date=toJST(d.datetime);
+
+    const body=d.text.replace(/【.+?】/,"");
+
+    const message=
+      "≪"+d.title+"≫\n"+
+      date+" 気象庁発表\n\n"+
+      "【"+d.headline+"】\n\n"+
+      body;
+
+    div.innerHTML=`
+      ≪${d.title}≫<br>
+      ${date} 気象庁発表<br><br>
+
+      【${d.headline}】<br><br>
+
+      ${body.replace(/\n/g,"<br>")}
+
+      <br>
+      <button class="copy-btn">📋 コピー</button>
+    `;
+
+    div.querySelector(".copy-btn").onclick=()=>{
+
+      navigator.clipboard.writeText(message);
+
+      alert("コピーしました");
+    };
+
+    list.appendChild(div);
+
+  });
+
+  document.getElementById("status").innerText =
+    "最終更新 " + new Date().toLocaleTimeString();
+
 }
-loadData();
+
+// 手動取得のみ
+function load(){
+
+  document.getElementById("status").innerText =
+    "取得中...";
+
+  google.script.run
+    .withSuccessHandler(show)
+    .withFailureHandler(()=>{
+      document.getElementById("status").innerText =
+        "取得失敗";
+    })
+    .fetchWeather();
+}
+
+// ▼ 自動更新なし
+
 </script>
+
 </body>
 </html>
