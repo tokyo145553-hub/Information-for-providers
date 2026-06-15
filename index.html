@@ -25,22 +25,25 @@ color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.25)}
 
 /* 目次ナビゲーション */
 .nav-menu { text-align: center; padding: 20px; background: #fff; margin-bottom: 20px; }
-.nav-btn { display: inline-block; padding: 10px 20px; background: #003b80; color: #fff; text-decoration: none; border-radius: 20px; margin: 0 10px; font-weight: bold; }
+.nav-btn { display: inline-block; padding: 10px 20px; background: #003b80; color: #fff; text-decoration: none; border-radius: 20px; font-weight: bold; }
 
 .section-title { text-align: center; margin: 30px 0 15px; color: #003b80; }
 
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px, 240px)); justify-content:center; gap:20px;padding:25px;max-width:1000px;margin:auto}
 
-/* カードサイズの調整 */
+/* カードサイズとデザイン */
 .card{background:#fff;border-radius:18px;padding:25px 15px;text-decoration:none;color:#333;
 box-shadow:0 4px 12px rgba(0,0,0,.08);border:1px solid #dbe5ef;transition:.25s; text-align: center;}
 .card:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(0,0,0,.15)}
-.card i{font-size:50px;margin-bottom:15px} /* アイコンサイズ調整 */
+.card i{font-size:50px;margin-bottom:15px}
 .card h3{font-size:18px;margin-bottom:10px}
 
-.weather-card,.typhoon-card{border-top:7px solid #006837}
-.weather,.typhoon{color:#006837}
+/* 配色ルール: 紫=発表状況、青=転載可 */
+.weather-card,.typhoon-card,.tornado-card{border-top:7px solid #006837}
+.weather,.typhoon,.tornado{color:#006837}
 .tags span{display:inline-block;margin:2px;padding:3px 6px;border-radius:4px;font-size:10px;color:#fff;font-weight:bold}
+.tag-status{background:#6633cc;} /* 発表状況 */
+.tag-copy{background:#0066cc;}   /* 転載可 */
 
 footer{text-align:center;color:#666;font-size:12px;padding:20px}
 </style>
@@ -58,7 +61,7 @@ footer{text-align:center;color:#666;font-size:12px;padding:20px}
 </header>
 
 <nav class="nav-menu">
-    <a href="#weather-section" class="nav-btn">気象情報へジャンプ</a>
+    <a href="#weather-section" class="nav-btn">気象情報セクションへ</a>
 </nav>
 
 <section id="weather-section">
@@ -68,9 +71,8 @@ footer{text-align:center;color:#666;font-size:12px;padding:20px}
             <i class="fa-solid fa-cloud-bolt weather"></i>
             <h3>気象警報</h3>
             <div class="tags">
-                <span style="background:#e0b400;color:#000;">注意報</span>
-                <span style="background:#d32f2f;">警報</span>
-                <span style="background:#7b1fa2;">危険</span>
+                <span class="tag-status">発表状況確認</span>
+                <span class="tag-copy">転載可</span>
             </div>
         </a>
 
@@ -78,8 +80,17 @@ footer{text-align:center;color:#666;font-size:12px;padding:20px}
             <i class="fa-solid fa-hurricane typhoon"></i>
             <h3>台風情報</h3>
             <div class="tags">
-                <span style="background:#6633cc;">実況</span>
-                <span style="background:#0066cc;">転載可</span>
+                <span class="tag-status">実況</span>
+                <span class="tag-copy">転載可</span>
+            </div>
+        </a>
+
+        <a href="tornado.html" class="card tornado-card">
+            <i class="fa-solid fa-tornado tornado"></i>
+            <h3>気象防災速報<br>(竜巻注意)</h3>
+            <div class="tags">
+                <span class="tag-status">発表状況確認</span>
+                <span class="tag-copy">転載可</span>
             </div>
         </a>
     </div>
