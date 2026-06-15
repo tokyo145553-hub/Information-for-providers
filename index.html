@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>提供者向け情報サイト | TokyoEastBranch</title>
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 <style>
 :root {
     --primary-color: #003b80;
@@ -14,41 +16,219 @@
 }
 
 html { scroll-behavior: smooth; }
-body { margin: 0; padding: 0; font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif; background: var(--bg-color); color: var(--text-color); line-height: 1.6; }
 
-/* Header */
-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 5%; background: linear-gradient(135deg, #001f4d, var(--primary-color)); color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-.header-left { display: flex; align-items: center; gap: 20px; }
-.logo { width: 60px; height: 60px; border-radius: 50%; background: #fff; padding: 4px; object-fit: contain; }
-.header-title h1 { font-size: 24px; margin: 0; }
-.header-title p { opacity: 0.8; font-size: 12px; margin: 0; }
-#clock { font-family: monospace; font-size: 1.1rem; }
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
 
-/* Navigation */
-.nav-menu { padding: 30px; text-align: center; }
-.nav-btn { display: inline-block; padding: 12px 25px; background: #fff; color: var(--primary-color); border: 2px solid var(--primary-color); text-decoration: none; border-radius: 30px; font-weight: bold; transition: 0.3s; }
-.nav-btn:hover { background: var(--primary-color); color: #fff; }
+/* ================= HEADER ================= */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 6%;
+    background: linear-gradient(135deg, #001f4d, var(--primary-color));
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
 
-/* Grid Layout */
-.section-title { text-align: center; margin: 40px 0 20px; font-size: 28px; color: var(--primary-color); }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 0 5% 50px; max-width: 1200px; margin: auto; }
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
 
-/* Cards */
-.card { background: #fff; border-radius: 20px; padding: 30px 20px; text-decoration: none; color: var(--text-color); box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); transition: 0.3s; display: flex; flex-direction: column; align-items: center; text-align: center; }
-.card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-.card i { font-size: 40px; margin-bottom: 20px; color: var(--accent-color); }
-.card h3 { font-size: 18px; margin-bottom: 15px; }
+.logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #fff;
+    padding: 4px;
+    object-fit: contain;
+}
 
-/* Tags */
-.tags { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
-.tags span { padding: 4px 8px; border-radius: 6px; font-size: 11px; color: #fff; font-weight: bold; }
+.header-title h1 {
+    font-size: 22px;
+    margin: 0;
+}
+
+.header-title p {
+    opacity: 0.8;
+    font-size: 12px;
+    margin: 0;
+}
+
+#clock {
+    font-family: monospace;
+    font-size: 1.1rem;
+}
+
+/* ================= NAV ================= */
+.nav-menu {
+    padding: 25px;
+    text-align: center;
+}
+
+.nav-btn {
+    display: inline-block;
+    padding: 12px 22px;
+    background: #fff;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    text-decoration: none;
+    border-radius: 30px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.nav-btn:hover {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+/* ================= TITLE ================= */
+.section-title {
+    text-align: center;
+    margin: 35px 0 20px;
+    font-size: 28px;
+    color: var(--primary-color);
+}
+
+/* ================= GRID ================= */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+    padding: 0 6% 50px;
+    max-width: 1300px;
+    margin: auto;
+}
+
+/* ================= CARD ================= */
+.card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 25px 18px;
+    text-decoration: none;
+    color: var(--text-color);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: 0.25s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+}
+
+.card i {
+    font-size: 38px;
+    margin-bottom: 15px;
+    color: var(--accent-color);
+}
+
+.card h3 {
+    font-size: 17px;
+    margin-bottom: 12px;
+}
+
+/* ================= TAGS ================= */
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: center;
+}
+
+.tags span {
+    padding: 4px 7px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #fff;
+    font-weight: bold;
+}
+
 .tag-status { background: #6633cc; }
 .tag-copy { background: #0066cc; }
 .tag-unavailable { background: #cc0000; }
 
-footer { text-align: center; padding: 30px; font-size: 12px; color: #888; border-top: 1px solid #ddd; }
+/* ================= FOOTER ================= */
+footer {
+    text-align: center;
+    padding: 25px;
+    font-size: 12px;
+    color: #888;
+    border-top: 1px solid #ddd;
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 15px;
+    }
+
+    .header-title h1 {
+        font-size: 18px;
+    }
+
+    #clock {
+        align-self: flex-end;
+        font-size: 14px;
+    }
+
+    .nav-btn {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 0 15px 40px;
+    }
+
+    .card {
+        padding: 20px 15px;
+    }
+
+    .card i {
+        font-size: 32px;
+    }
+
+    .section-title {
+        font-size: 22px;
+    }
+}
+
+/* ================= LARGE SCREEN ================= */
+@media (min-width: 1400px) {
+
+    .grid {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 1500px;
+    }
+
+    header {
+        padding: 20px 10%;
+    }
+}
 </style>
 </head>
+
 <body>
 
 <header>
@@ -63,20 +243,25 @@ footer { text-align: center; padding: 30px; font-size: 12px; color: #888; border
 </header>
 
 <nav class="nav-menu">
-    <a href="#weather-section" class="nav-btn"><i class="fa-solid fa-arrow-down"></i> 気象情報一覧を表示</a>
+    <a href="#weather-section" class="nav-btn">
+        <i class="fa-solid fa-arrow-down"></i> 気象情報一覧
+    </a>
 </nav>
 
 <section id="weather-section">
     <h2 class="section-title">気象情報メニュー</h2>
+
     <div class="grid">
+
         <a href="weather.html" class="card">
             <i class="fa-solid fa-cloud-bolt"></i>
             <h3>気象警報</h3>
             <div class="tags">
-                <span class="tag-status">発表状況確認</span>
+                <span class="tag-status">発表状況</span>
                 <span class="tag-copy">転載可</span>
             </div>
         </a>
+
         <a href="tenki.html" class="card">
             <i class="fa-solid fa-temperature-full"></i>
             <h3>天気予報</h3>
@@ -85,6 +270,7 @@ footer { text-align: center; padding: 30px; font-size: 12px; color: #888; border
                 <span class="tag-copy">転載可</span>
             </div>
         </a>
+
         <a href="typhoon.html" class="card">
             <i class="fa-solid fa-hurricane"></i>
             <h3>台風情報</h3>
@@ -93,15 +279,18 @@ footer { text-align: center; padding: 30px; font-size: 12px; color: #888; border
                 <span class="tag-copy">転載可</span>
             </div>
         </a>
+
         <a href="tornado.html" class="card">
             <i class="fa-solid fa-tornado"></i>
-            <h3>竜巻注意情報</h3>
+            <h3>気象防災速報（竜巻注意）</h3>
             <div class="tags">
-                <span class="tag-status">発表確認</span>
+                <span class="tag-status">発表状況</span>
                 <span class="tag-copy">転載可</span>
             </div>
         </a>
-        <a href="https://script.google.com/macros/s/AKfycbwoh1YsazOyU86oMUv0RJSMhfBXs036Rz0eoi1iz6l8MruUU3oIJV0n8FOp8QCZZq6fNQ/exec" class="card" target="_blank">
+
+        <a href="https://script.google.com/macros/s/AKfycbwoh1YsazOyU86oMUv0RJSMhfBXs036Rz0eoi1iz6l8MruUU3oIJV0n8FOp8QCZZq6fNQ/exec"
+           class="card" target="_blank">
             <i class="fa-solid fa-file-lines"></i>
             <h3>気象解説情報（地方・全般）</h3>
             <div class="tags">
@@ -109,18 +298,23 @@ footer { text-align: center; padding: 30px; font-size: 12px; color: #888; border
                 <span class="tag-copy">転載可</span>
             </div>
         </a>
+
     </div>
 </section>
 
-<footer>&copy; TokyoEastBranch All Rights Reserved.</footer>
+<footer>
+    &copy; TokyoEastBranch All Rights Reserved.
+</footer>
 
 <script>
 function updateClock(){
     const n = new Date();
-    document.getElementById("clock").textContent = n.toLocaleTimeString('ja-JP');
+    document.getElementById("clock").textContent =
+        n.toLocaleTimeString('ja-JP');
 }
 setInterval(updateClock, 1000);
 updateClock();
 </script>
+
 </body>
 </html>
