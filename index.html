@@ -22,12 +22,10 @@ html, body {
     background: var(--bg-color);
     color: var(--text-color);
     line-height: 1.6;
-    overflow-x: hidden; /* ★白い帯防止 */
+    overflow-x: hidden;
 }
 
-html {
-    scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 /* ================= HEADER ================= */
 header {
@@ -56,21 +54,17 @@ header {
 }
 
 .header-title h1 {
+    margin: 0;
     font-size: 22px;
-    margin: 0;
 }
-
 .header-title p {
-    font-size: 12px;
     margin: 0;
+    font-size: 12px;
     opacity: 0.8;
 }
 
-#clock {
-    font-family: monospace;
-}
+#clock { font-family: monospace; }
 
-/* ================= MENU BUTTON ================= */
 .menu-btn {
     position: absolute;
     right: 20px;
@@ -87,10 +81,7 @@ header {
     display: none;
     z-index: 999;
 }
-
-.overlay.active {
-    display: block;
-}
+.overlay.active { display: block; }
 
 /* ================= SIDE MENU ================= */
 .side-menu {
@@ -100,32 +91,18 @@ header {
     width: 300px;
     height: 100%;
     background: #fff;
-    box-shadow: -5px 0 20px rgba(0,0,0,0.25);
-    transform: translateX(100%); /* ★完全非表示 */
-    transition: transform 0.3s ease;
+    transform: translateX(100%);
+    transition: 0.3s;
     z-index: 1000;
     padding: 20px;
     overflow-y: auto;
 }
+.side-menu.active { transform: translateX(0); }
 
-.side-menu.active {
-    transform: translateX(0); /* ★表示 */
-}
-
-.side-menu h3 {
-    margin-top: 10px;
-    color: var(--primary-color);
-}
+.side-menu h3 { color: var(--primary-color); }
 
 /* ================= ACCORDION ================= */
-.accordion {
-    margin-top: 10px;
-    border-top: 1px solid #ddd;
-}
-
-.accordion-item {
-    margin-top: 8px;
-}
+.accordion-item { margin-top: 10px; }
 
 .accordion-btn {
     width: 100%;
@@ -134,43 +111,29 @@ header {
     border: none;
     background: #f4f7fb;
     border-radius: 8px;
-    cursor: pointer;
     font-weight: bold;
+    cursor: pointer;
 }
 
-.accordion-content {
-    display: none;
-    padding-left: 10px;
-    margin-top: 5px;
-}
+.accordion-content { display: none; padding-left: 10px; }
 
 .accordion-content a {
     display: block;
     padding: 8px;
-    margin: 4px 0;
     text-decoration: none;
     color: var(--text-color);
-    border-radius: 6px;
-}
-
-.accordion-content a:hover {
-    background: #eef3ff;
 }
 
 /* ================= NAV ================= */
-.nav-menu {
-    padding: 25px;
-    text-align: center;
-}
+.nav-menu { text-align: center; padding: 25px; }
 
 .nav-btn {
-    display: inline-block;
     padding: 12px 22px;
-    background: #fff;
-    color: var(--primary-color);
     border: 2px solid var(--primary-color);
+    background: #fff;
     border-radius: 30px;
     font-weight: bold;
+    text-decoration: none;
 }
 
 /* ================= GRID ================= */
@@ -201,10 +164,7 @@ header {
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     transition: 0.25s;
 }
-
-.card:hover {
-    transform: translateY(-6px);
-}
+.card:hover { transform: translateY(-6px); }
 
 .card i {
     font-size: 38px;
@@ -212,7 +172,7 @@ header {
     color: var(--accent-color);
 }
 
-/* ================= TAGS（削除なし維持） ================= */
+/* ================= TAGS ================= */
 .tags {
     display: flex;
     justify-content: center;
@@ -231,22 +191,9 @@ header {
 .tag-copy { background: #0066cc; }
 .tag-unavailable { background: #cc0000; }
 
-/* ================= MOBILE ================= */
-@media (max-width: 768px) {
-    .grid {
-        grid-template-columns: 1fr;
-        padding: 0 15px;
-    }
-
-    header {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 15px;
-    }
-
-    #clock {
-        align-self: flex-end;
-    }
+@media (max-width:768px){
+    .grid{grid-template-columns:1fr;}
+    header{flex-direction:column;align-items:flex-start;}
 }
 </style>
 </head>
@@ -275,43 +222,38 @@ header {
 <div class="side-menu" id="menu">
     <h3>メニュー</h3>
 
-    <!-- 気象情報 -->
     <div class="accordion-item">
         <button class="accordion-btn" onclick="toggleAccordion(this)">
             🌤 気象情報（詳細）
         </button>
 
         <div class="accordion-content">
-
             <a href="#weather-section" onclick="toggleMenu()">気象メニューTOP</a>
             <a href="weather.html">気象警報</a>
             <a href="tenki.html">天気予報</a>
             <a href="typhoon.html">台風情報</a>
             <a href="tornado.html">気象防災速報（竜巻注意）</a>
+
+            <!-- 🔥追加 -->
+            <a href="linesei.html">線状降水帯予測</a>
+
             <a href="https://script.google.com/macros/s/AKfycbwoh1YsazOyU86oMUv0RJSMhfBXs036Rz0eoi1iz6l8MruUU3oIJV0n8FOp8QCZZq6fNQ/exec">
                 気象解説情報（地方・全般）
             </a>
-
         </div>
     </div>
 
-    <!-- ================= その他（ここが重要） ================= -->
     <div class="accordion-item">
         <button class="accordion-btn" onclick="toggleAccordion(this)">
             📄 その他
         </button>
 
         <div class="accordion-content">
-
-            <a href="terms.html" onclick="toggleMenu()">
-                利用規約
-            </a>
-
+            <a href="terms.html" onclick="toggleMenu()">利用規約</a>
         </div>
     </div>
-
 </div>
-    
+
 <nav class="nav-menu">
     <a href="#weather-section" class="nav-btn">気象情報一覧</a>
 </nav>
@@ -357,6 +299,16 @@ header {
             </div>
         </a>
 
+        <!-- 🔥線状降水帯 -->
+        <a href="linesei.html" class="card">
+            <i class="fa-solid fa-cloud-showers-heavy"></i>
+            <h3>線状降水帯予測</h3>
+            <div class="tags">
+                <span class="tag-status">発表状況</span>
+                <span class="tag-copy">転載可</span>
+            </div>
+        </a>
+
         <a href="https://script.google.com/macros/s/AKfycbwoh1YsazOyU86oMUv0RJSMhfBXs036Rz0eoi1iz6l8MruUU3oIJV0n8FOp8QCZZq6fNQ/exec"
            class="card" target="_blank">
             <i class="fa-solid fa-file-lines"></i>
@@ -370,7 +322,7 @@ header {
     </div>
 </section>
 
-<section class="section-title" style="font-size:18px; color:#666; margin-top:40px;">
+<section class="section-title" style="font-size:18px;color:#666;margin-top:40px;">
     その他
 </section>
 
@@ -386,6 +338,7 @@ header {
     </a>
 
 </div>
+
 <footer style="text-align:center;padding:20px;color:#888;">
     &copy; TokyoEastBranch
 </footer>
@@ -404,9 +357,8 @@ function toggleMenu(){
 }
 
 function toggleAccordion(btn){
-    const content = btn.nextElementSibling;
-    content.style.display =
-        content.style.display === "block" ? "none" : "block";
+    const c = btn.nextElementSibling;
+    c.style.display = (c.style.display==="block")?"none":"block";
 }
 </script>
 
