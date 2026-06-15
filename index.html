@@ -275,6 +275,7 @@ header {
 <div class="side-menu" id="menu">
     <h3>メニュー</h3>
 
+    <!-- 気象情報 -->
     <div class="accordion-item">
         <button class="accordion-btn" onclick="toggleAccordion(this)">
             🌤 気象情報（詳細）
@@ -293,8 +294,24 @@ header {
 
         </div>
     </div>
-</div>
 
+    <!-- ================= その他（ここが重要） ================= -->
+    <div class="accordion-item">
+        <button class="accordion-btn" onclick="toggleAccordion(this)">
+            📄 その他
+        </button>
+
+        <div class="accordion-content">
+
+            <a href="terms.html" onclick="toggleMenu()">
+                利用規約
+            </a>
+
+        </div>
+    </div>
+
+</div>
+    
 <nav class="nav-menu">
     <a href="#weather-section" class="nav-btn">気象情報一覧</a>
 </nav>
