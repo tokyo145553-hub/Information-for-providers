@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>台風情報</title>
+<title>気象解説情報</title>
 <style>
 body{ font-family:sans-serif; max-width:900px; margin:40px auto; padding:20px; background:#f5f5f5; }
 #backBtn{ display:inline-block; margin-bottom:15px; padding:10px 16px; background:#0066cc; color:white; text-decoration:none; border-radius:8px; font-size:14px; font-weight:bold; }
@@ -11,80 +11,70 @@ h1{ text-align:center; margin-top:0; }
 .buttons{ display:flex; justify-content:center; gap:10px; margin-bottom:15px; }
 button{ padding:10px 18px; font-size:16px; border:none; border-radius:8px; cursor:pointer; }
 #status{ text-align:center; margin-bottom:10px; color:green; font-size:14px; }
-/* リスト表示用スタイル */
-.info-table{ background:white; border:1px solid #ccc; border-radius:10px; padding:20px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-.info-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom: 1px solid #eee; }
-.info-row:last-child{ border-bottom: none; }
-.copy-mini-btn{ padding:4px 8px; font-size:12px; background:#e0e0e0; border:none; border-radius:4px; cursor:pointer; }
-.copy-mini-btn:hover{ background:#ccc; }
+
+/* カードデザイン */
+.item{ background:#fff; margin-bottom:20px; padding:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05); border-left:5px solid #006837; }
+.item h3 { margin-top: 0; color: #006837; font-size: 1.1em; }
+.content-area{ background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 10px 0; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+.copy-btn { width: 100%; background: #238636; color: white; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+.copy-btn:hover { background: #1d722d; }
 </style>
 </head>
 <body>
 
 <a href="index.html" id="backBtn">← トップへ戻る</a>
-<h1>台風情報</h1>
+<h1>気象解説情報</h1>
 
 <div class="buttons">
-    <button onclick="getTyphoonInfo()">🔄 更新</button>
+    <button onclick="load()">🔄 最新情報を更新</button>
 </div>
 
 <div id="status"></div>
-<div id="result" class="info-table">読み込み待機中...</div>
+<div id="list"></div>
 
 <script>
-async function getTyphoonInfo() {
-    const FEED_URL = "https://www.data.jma.go.jp/developer/xml/feed/extra.xml";
-    const result = document.getElementById("result");
-    const status = document.getElementById("status");
+function load(){
+  document.getElementById("status").innerText = "取得中...";
+  google.script.run
+    .withSuccessHandler(show)
+    .withFailureHandler(() => document.getElementById("status").innerText = "取得失敗")
+    .fetchWeather();
+}
 
-    try {
-        result.textContent = "取得中...";
-        const feedRes = await fetch(FEED_URL);
-        const feedXml = new DOMParser().parseFromString(await feedRes.text(), "text/xml");
-        const entries = [...feedXml.getElementsByTagName("entry")];
-        
-        let targetEntry = entries.find(e => e.textContent.includes("台風") && (e.textContent.includes("実況") || e.textContent.includes("予報")));
+function show(data){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  const filtered = data.filter(d => d.title.includes("解説情報"));
 
-        if (!targetEntry) {
-            result.textContent = "現在、台風情報はありません";
-            return;
-        }
+  if(filtered.length === 0){
+    list.innerHTML = "<p style='text-align:center;'>現在、対象の解説情報は発表されていません。</p>";
+    return;
+  }
 
-        const link = targetEntry.getElementsByTagName("link")[0]?.getAttribute("href");
-        const detailXml = new DOMParser().parseFromString(await (await fetch(link)).text(), "text/xml");
+  filtered.forEach(d => {
+    const div = document.createElement("div");
+    div.className = "item";
+    
+    // 見出しと本文をセットにした文字列
+    const fullText = `【${d.headline}】\n\n${d.text}`;
 
-        // データ抽出（簡略化）
-        const data = {
-            "台風番号": (detailXml.querySelector("Number")?.textContent.slice(-2) || "--") + "号",
-            "台風名": detailXml.querySelector("Name")?.textContent || "不明",
-            "大きさ": detailXml.querySelector("AreaClass")?.textContent || "--",
-            "強さ": detailXml.querySelector("IntensityClass")?.textContent || "--",
-            "存在地域": detailXml.querySelector("CenterPart Location")?.textContent || "不明",
-            "中心気圧": (detailXml.querySelector("Pressure")?.textContent || "不明") + " hPa",
-            "最大風速": (detailXml.querySelector("WindSpeed[type*='最大風速']")?.textContent || "―") + " m/s"
-        };
+    div.innerHTML = `
+      <h3>${d.title}</h3>
+      <div class="content-area"><strong>【${d.headline}】</strong><br>${d.text}</div>
+      <button class="copy-btn" onclick="copyText('${fullText.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">📋 この情報をコピー</button>
+    `;
+    list.appendChild(div);
+  });
 
-        result.innerHTML = "";
-        for (const [key, val] of Object.entries(data)) {
-            const row = document.createElement("div");
-            row.className = "info-row";
-            row.innerHTML = `<span><strong>${key}:</strong> ${val}</span>
-                             <button class="copy-mini-btn" onclick="copyText('${val}')">📋コピー</button>`;
-            result.appendChild(row);
-        }
-        status.textContent = "最終更新: " + new Date().toLocaleString("ja-JP");
-    } catch(e) {
-        result.textContent = "データ取得に失敗しました。";
-    }
+  document.getElementById("status").innerText = "最終更新: " + new Date().toLocaleTimeString();
 }
 
 function copyText(text) {
-    navigator.clipboard.writeText(text);
-    alert("コピーしました: " + text);
+  navigator.clipboard.writeText(text);
+  alert("コピーしました");
 }
 
-getTyphoonInfo();
+window.onload = load;
 </script>
-
 </body>
 </html>
