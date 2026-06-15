@@ -15,13 +15,18 @@
     --text-color: #333;
 }
 
-html { scroll-behavior: smooth; }
-
-body {
+html, body {
     margin: 0;
+    padding: 0;
     font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
     background: var(--bg-color);
     color: var(--text-color);
+    line-height: 1.6;
+    overflow-x: hidden; /* ★白い帯防止 */
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 /* ================= HEADER ================= */
@@ -47,6 +52,7 @@ header {
     border-radius: 50%;
     background: #fff;
     padding: 4px;
+    object-fit: contain;
 }
 
 .header-title h1 {
@@ -90,19 +96,20 @@ header {
 .side-menu {
     position: fixed;
     top: 0;
-    right: -320px;
+    right: 0;
     width: 300px;
     height: 100%;
     background: #fff;
     box-shadow: -5px 0 20px rgba(0,0,0,0.25);
-    transition: 0.3s;
+    transform: translateX(100%); /* ★完全非表示 */
+    transition: transform 0.3s ease;
     z-index: 1000;
     padding: 20px;
     overflow-y: auto;
 }
 
 .side-menu.active {
-    right: 0;
+    transform: translateX(0); /* ★表示 */
 }
 
 .side-menu h3 {
@@ -112,8 +119,8 @@ header {
 
 /* ================= ACCORDION ================= */
 .accordion {
-    border-top: 1px solid #ddd;
     margin-top: 10px;
+    border-top: 1px solid #ddd;
 }
 
 .accordion-item {
@@ -124,8 +131,8 @@ header {
     width: 100%;
     text-align: left;
     padding: 12px;
-    background: #f4f7fb;
     border: none;
+    background: #f4f7fb;
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
@@ -140,6 +147,7 @@ header {
 .accordion-content a {
     display: block;
     padding: 8px;
+    margin: 4px 0;
     text-decoration: none;
     color: var(--text-color);
     border-radius: 6px;
@@ -178,9 +186,11 @@ header {
     grid-template-columns: repeat(3, 1fr);
     gap: 22px;
     padding: 0 6% 50px;
+    max-width: 1300px;
+    margin: auto;
 }
 
-/* ================= CARD（タグ維持） ================= */
+/* ================= CARD ================= */
 .card {
     background: #fff;
     border-radius: 18px;
@@ -202,6 +212,7 @@ header {
     color: var(--accent-color);
 }
 
+/* ================= TAGS（削除なし維持） ================= */
 .tags {
     display: flex;
     justify-content: center;
@@ -230,6 +241,11 @@ header {
     header {
         flex-direction: column;
         align-items: flex-start;
+        padding: 15px;
+    }
+
+    #clock {
+        align-self: flex-end;
     }
 }
 </style>
@@ -259,28 +275,23 @@ header {
 <div class="side-menu" id="menu">
     <h3>メニュー</h3>
 
-    <!-- 気象情報（折りたたみ） -->
-    <div class="accordion">
+    <div class="accordion-item">
+        <button class="accordion-btn" onclick="toggleAccordion(this)">
+            🌤 気象情報（詳細）
+        </button>
 
-        <div class="accordion-item">
-            <button class="accordion-btn" onclick="toggleAccordion(this)">
-                🌤 気象情報（詳細）
-            </button>
+        <div class="accordion-content">
 
-            <div class="accordion-content">
+            <a href="#weather-section" onclick="toggleMenu()">気象メニューTOP</a>
+            <a href="weather.html">気象警報</a>
+            <a href="tenki.html">天気予報</a>
+            <a href="typhoon.html">台風情報</a>
+            <a href="tornado.html">気象防災速報（竜巻注意）</a>
+            <a href="https://script.google.com/macros/s/AKfycbwoh1YsazOyU86oMUv0RJSMhfBXs036Rz0eoi1iz6l8MruUU3oIJV0n8FOp8QCZZq6fNQ/exec">
+                気象解説情報（地方・全般）
+            </a>
 
-                <a href="#weather-section" onclick="toggleMenu()">気象メニューTOP</a>
-                <a href="weather.html">気象警報</a>
-                <a href="tenki.html">天気予報</a>
-                <a href="typhoon.html">台風情報</a>
-                <a href="tornado.html">竜巻注意情報</a>
-                <a href="https://script.google.com/macros/s/AKfycbwoh1YsazOyU86oMUv0RJSMhfBXs036Rz0eoi1iz6l8MruUU3oIJV0n8FOp8QCZZq6fNQ/exec">
-                    気象解説情報（地方・全般）
-                </a>
-
-            </div>
         </div>
-
     </div>
 </div>
 
@@ -354,13 +365,11 @@ function updateClock(){
 setInterval(updateClock,1000);
 updateClock();
 
-/* メニュー開閉 */
 function toggleMenu(){
     document.getElementById("menu").classList.toggle("active");
     document.querySelector(".overlay").classList.toggle("active");
 }
 
-/* アコーディオン */
 function toggleAccordion(btn){
     const content = btn.nextElementSibling;
     content.style.display =
