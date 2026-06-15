@@ -1,57 +1,85 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>地震情報(X)簡易版</title>
-    <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
-        .quake-card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid #003b80; }
-        button { background: #003b80; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>地震情報 | TokyoEastBranch</title>
+<style>
+    /* 共通スタイル */
+    *{margin:0;padding:0;box-sizing:border-box;font-family:"Yu Gothic","Meiryo",sans-serif}
+    body{background:#f4f7fb;color:#333;padding-bottom:50px;}
+    
+    header{display:flex;justify-content:space-between;align-items:center;padding:18px 28px;background:linear-gradient(135deg,#001f4d,#003b80);color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+    .header-left{display:flex;align-items:center;gap:16px}
+    .logo{width:50px;height:50px;border-radius:50%;background:#fff;padding:4px}
+    
+    .container{max-width:800px;margin:30px auto;padding:0 20px;}
+    .back-link{display:inline-block;margin-bottom:20px;color:#003b80;text-decoration:none;font-weight:bold;}
+    
+    .quake-card{background:#fff;border-radius:18px;padding:25px;margin-bottom:20px;box-shadow:0 4px 12px rgba(0,0,0,.08);border-left:7px solid #003b80;}
+    pre{font-family:inherit;line-height:1.8;white-space:pre-wrap;}
+    
+    button{margin-top:15px;padding:10px 20px;background:#003b80;color:#fff;border:none;border-radius:20px;cursor:pointer;font-weight:bold;transition:.2s}
+    button:hover{background:#0055aa;}
+</style>
 </head>
 <body>
-    <a href="index.html">← トップへ戻る</a>
-    <h1>地震情報</h1>
+
+<header>
+    <div class="header-left">
+        <div class="header-title">
+            <h1>地震情報</h1>
+            <p>TokyoEastBranch Provider Portal</p>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <a href="index.html" class="back-link">← トップへ戻る</a>
     <div id="quakeList">読み込み中...</div>
+</div>
 
-    <script>
-        const API_URL = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://api.p2pquake.net/v2/history?codes=551&limit=3");
+<script>
+    const API_URL = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://api.p2pquake.net/v2/history?codes=551&limit=3");
 
-        async function loadQuake() {
-            try {
-                const res = await fetch(API_URL);
-                const data = await res.json();
-                const json = JSON.parse(data.contents);
-                const container = document.getElementById("quakeList");
-                container.innerHTML = "";
+    async function loadQuake() {
+        try {
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            const json = JSON.parse(data.contents);
+            const container = document.getElementById("quakeList");
+            container.innerHTML = "";
 
-                json.forEach(item => {
-                    const eq = item.earthquake;
-                    const time = new Date(eq.time).toLocaleString("ja-JP");
-                    // M5.0形式に正規化
-                    const mag = eq.hypocenter.magnitude !== null ? "M" + parseFloat(eq.hypocenter.magnitude).toFixed(1) : "不明";
-                    
-                    const text = `${time}頃、最大震度${scaleToShindo(eq.maxScale)}の地震がありました。\n震源地: ${eq.hypocenter.name || "不明"}\n深さ: ${eq.hypocenter.depth === 0 ? "ごく浅い" : eq.hypocenter.depth + "km"}\nマグニチュード: ${mag}`;
-                    
-                    const div = document.createElement("div");
-                    div.className = "quake-card";
-                    div.innerHTML = `<pre style="white-space:pre-wrap;">${text}</pre><button onclick="copyText(this)">📋 コピー</button>`;
-                    container.appendChild(div);
-                });
-            } catch(e) { document.getElementById("quakeList").textContent = "データ取得エラー"; }
+            json.forEach(item => {
+                const eq = item.earthquake;
+                const time = new Date(eq.time).toLocaleString("ja-JP");
+                const mag = eq.hypocenter.magnitude !== null ? "M" + parseFloat(eq.hypocenter.magnitude).toFixed(1) : "不明";
+                
+                const text = `${time}頃、最大震度${scaleToShindo(eq.maxScale)}の地震がありました。\n震源地: ${eq.hypocenter.name || "不明"}\n深さ: ${eq.hypocenter.depth === 0 ? "ごく浅い" : eq.hypocenter.depth + "km"}\nマグニチュード: ${mag}`;
+                
+                const div = document.createElement("div");
+                div.className = "quake-card";
+                div.innerHTML = `<pre>${text}</pre><button onclick="copyText(this)">📋 コピー</button>`;
+                container.appendChild(div);
+            });
+        } catch(e) { 
+            document.getElementById("quakeList").innerHTML = `<div class="quake-card">データ取得エラーが発生しました。</div>`; 
         }
+    }
 
-        function scaleToShindo(s){
-            const map = {10:"1", 20:"2", 30:"3", 40:"4", 45:"5弱", 50:"5強", 55:"6弱", 60:"6強", 70:"7"};
-            return map[s] || "不明";
-        }
+    function scaleToShindo(s){
+        const map = {10:"1", 20:"2", 30:"3", 40:"4", 45:"5弱", 50:"5強", 55:"6弱", 60:"6強", 70:"7"};
+        return map[s] || "不明";
+    }
 
-        function copyText(btn) {
-            navigator.clipboard.writeText(btn.previousElementSibling.textContent);
-            btn.textContent = "✅ コピー済み";
-            setTimeout(() => btn.textContent = "📋 コピー", 2000);
-        }
-        loadQuake();
-    </script>
+    function copyText(btn) {
+        navigator.clipboard.writeText(btn.previousElementSibling.textContent);
+        btn.textContent = "✅ コピー済み";
+        setTimeout(() => btn.textContent = "📋 コピー", 2000);
+    }
+
+    loadQuake();
+</script>
+
 </body>
 </html>
