@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>熱中症警戒アラート</title>
+<style>
+body{ font-family:sans-serif; max-width:900px; margin:40px auto; padding:20px; background:#f5f5f5; }
+#backBtn{ display:inline-block; margin-bottom:15px; padding:10px 16px; background:#0066cc; color:white; text-decoration:none; border-radius:8px; font-size:14px; font-weight:bold; }
+#backBtn:hover{ background:#0055aa; }
+h1{ text-align:center; margin-top:0; }
+.buttons{ display:flex; justify-content:center; gap:10px; margin-bottom:15px; }
+button{ padding:10px 18px; font-size:16px; border:none; border-radius:8px; cursor:pointer; background:#003b80; color:#fff; }
+button:hover{ opacity:0.85; }
+#status{ text-align:center; margin-bottom:10px; color:green; font-size:14px; }
+#result{ white-space:pre-line; background:white; border:1px solid #ccc; border-radius:10px; padding:20px; line-height:1.8; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+</style>
+</head>
+<body>
+
+<a href="index.html" id="backBtn">← トップへ戻る</a>
+
+<h1>熱中症警戒アラート</h1>
+
+<div class="buttons">
+    <button onclick="getHeatAlert()">🔄 更新</button>
+    <button onclick="copyInfo()">📋 コピー</button>
+</div>
+
+<div id="status"></div>
+<div id="result">読み込み待機中...</div>
+
+<script>
+async function getHeatAlert() {
+    const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnQapGwM095_murqSFvKF-SVr5wujSPmNtyprw7SaLwPPw88a7kvUWEkR8WvvwamAXBmJqEpewQ6TbJ9MCEQQLS9F955qim04RlW58hvavwwzNf1H-up87IuxKRlMS5huimt8MN1InuRpLISuFmlXmCd24rWE7PdPgEw2UNBAFEs6I9AKDpYLthDes_ADXC9r7KejUUt-e2eyqvD5fEHKuDbZWYUu0GVm0eKQvjNoN9-JwSasbvqM6iXmVt2-n03ujMeLmin0f0XBBy3hDFPJxyQCtsLJw&lib=MB-5AExKiNQZ8am9veRU5nzjDR3pfYmDk";
+    const result = document.getElementById("result");
+    const status = document.getElementById("status");
+
+    try {
+        result.textContent = "取得中...";
+        const res = await fetch(API_URL);
+        const json = await res.json();
+        const data_all = json.data;
+
+        const now = new Date();
+        const hour = now.getHours();
+        const data = (hour < 11) ? data_all.today : data_all.tomorrow;
+
+        // 日付整形など
+        const report = new Date(data_all.report_alert);
+        const publish = `${report.getMonth()+1}月${report.getDate()}日${report.getHours()}時`;
+        const targetDate = new Date(data.target);
+        const week = ["日","月","火","水","木","金","土"];
+        const target = `${targetDate.getMonth()+1}月${targetDate.getDate()}日（${week[targetDate.getDay()]}）`;
+
+        let msg = "《熱中症警戒アラート》\n";
+        msg += `発表：${publish}\n`;
+        msg += `対象：${target}\n\n`;
+
+        if (data.alerts.special_alert?.length) {
+            msg += "⬛熱中症特別警戒アラート⬛\n・" + data.alerts.special_alert.join("\n・") + "\n\n";
+        }
+        if (data.alerts.alert?.length) {
+            msg += "🟪熱中症警戒アラート🟪\n・" + data.alerts.alert.join("\n・") + "\n\n";
+        }
+        if (data.wbgt.over31?.length) {
+            msg += "🟥WBGT31以上（危険）🟥\n・" + data.wbgt.over31.join("\n・") + "\n\n";
+        }
+        if (!data.alerts.special_alert?.length && !data.alerts.alert?.length && !data.wbgt.over31?.length) {
+            msg += "発表されている情報はありません\n\n";
+        }
+
+        msg += "出典：環境省\n熱アラAPI by なふぃー";
+        result.textContent = msg;
+        status.textContent = "最終更新: " + new Date().toLocaleString("ja-JP");
+    } catch(e) {
+        result.textContent = "データ取得に失敗しました。";
+    }
+}
+
+async function copyInfo() {
+    const text = document.getElementById("result").textContent;
+    await navigator.clipboard.writeText(text);
+    const status = document.getElementById("status");
+    const original = status.textContent;
+    status.textContent = "✅ コピーしました";
+    setTimeout(() => status.textContent = original, 2000);
+}
+
+getHeatAlert();
+</script>
+</body>
+</html>
