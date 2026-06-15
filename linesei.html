@@ -2,8 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>線状降水帯予測 | 気象防災速報</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>線状降水帯予測</title>
 
 <style>
 body{
@@ -26,50 +26,23 @@ body{
     font-weight:bold;
 }
 
-#backBtn:hover{
-    background:#0055aa;
-}
+#backBtn:hover{background:#0055aa;}
 
-h1{
-    text-align:center;
-    margin-top:0;
-}
+h1{text-align:center;margin-top:0;}
 
 .buttons{
     display:flex;
     justify-content:center;
     gap:10px;
-    flex-wrap:wrap;
-    margin-bottom:10px;
-}
-
-button{
-    padding:10px 14px;
-    font-size:14px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-}
-
-button:hover{
-    opacity:0.85;
-}
-
-.filterBar{
-    display:flex;
-    justify-content:center;
-    gap:8px;
-    flex-wrap:wrap;
     margin-bottom:15px;
 }
 
-.filterBtn{
-    background:#ddd;
-}
-
-.filterBtn.active{
-    background:#0066cc;
-    color:#fff;
+button{
+    padding:10px 18px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
 }
 
 #status{
@@ -86,7 +59,6 @@ button:hover{
     border-radius:10px;
     padding:20px;
     line-height:1.8;
-    box-shadow:0 2px 5px rgba(0,0,0,0.1);
 }
 </style>
 </head>
@@ -95,20 +67,11 @@ button:hover{
 
 <a href="index.html" id="backBtn">← トップへ戻る</a>
 
-<h1>線状降水帯予測（フィルター版）</h1>
-
-<!-- フィルター -->
-<div class="filterBar">
-    <button class="filterBtn active" onclick="setFilter('all',event)">全体</button>
-    <button class="filterBtn" onclick="setFilter('linear',event)">線状降水帯</button>
-    <button class="filterBtn" onclick="setFilter('early',event)">半日前予測</button>
-    <button class="filterBtn" onclick="setFilter('imminent',event)">直前</button>
-    <button class="filterBtn" onclick="setFilter('danger',event)">危険度</button>
-</div>
+<h1>線状降水帯予測</h1>
 
 <div class="buttons">
-    <button onclick="getInfo()">🔄 更新</button>
-    <button onclick="copyInfo()">📋 コピー</button>
+    <button onclick="fetchData()">🔄 更新</button>
+    <button onclick="copyData()">📋 コピー</button>
 </div>
 
 <div id="status"></div>
@@ -116,155 +79,93 @@ button:hover{
 
 <script>
 
-const FEED_URL =
+const FEED =
 "https://www.data.jma.go.jp/developer/xml/feed/extra.xml";
 
-let currentFilter = "all";
-let cachedText = "";
+async function fetchData(){
 
-function setFilter(type, event){
+    const res = await fetch(FEED);
+    const xml = await res.text();
 
-    currentFilter = type;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml,"text/xml");
 
-    document.querySelectorAll(".filterBtn").forEach(b=>{
-        b.classList.remove("active");
+    const entries = [...doc.getElementsByTagName("entry")];
+
+    const targets = entries.filter(e => {
+        const id = e.getElementsByTagName("id")[0]?.textContent || "";
+        const title = e.getElementsByTagName("title")[0]?.textContent || "";
+
+        return (
+            title.includes("線状降水帯") ||
+            title.includes("大雨") ||
+            title.includes("気象情報")
+        );
     });
 
-    if(event && event.target){
-        event.target.classList.add("active");
-    }
+    let output = "";
 
-    applyFilter();
-}
+    for(const e of targets){
 
-function applyFilter(){
+        const title =
+            e.getElementsByTagName("title")[0]?.textContent;
 
-    if(!cachedText){
-        return;
-    }
+        const link =
+            e.getElementsByTagName("link")[0]
+            ?.getAttribute("href");
 
-    let text = cachedText;
+        const detailRes = await fetch(link);
+        const detailText = await detailRes.text();
+        const detailXml = parser.parseFromString(detailText,"text/xml");
 
-    const lines = text.split("\n");
+        const body =
+            detailXml.getElementsByTagName("Text")[0]
+            ?.textContent || "本文なし";
 
-    if(currentFilter === "linear"){
-        text = lines.filter(l =>
-            l.includes("線状降水帯")
-        ).join("\n");
-    }
+        const pubTime =
+            e.getElementsByTagName("updated")[0]
+            ?.textContent || "";
 
-    if(currentFilter === "early"){
-        text = lines.filter(l =>
-            l.includes("半日前") ||
-            l.includes("6時間") ||
-            l.includes("3時間") ||
-            l.includes("今後") ||
-            l.includes("見込まれる")
-        ).join("\n");
-    }
+        const isFuken = link.includes("VPFG");
+        const isChiho = link.includes("VPFJ");
+        const isZenpan = link.includes("VPZI");
 
-    if(currentFilter === "imminent"){
-        text = lines.filter(l =>
-            l.includes("直前") ||
-            l.includes("差し迫") ||
-            l.includes("今後1") ||
-            l.includes("今後3") ||
-            l.includes("発生するおそれ") ||
-            l.includes("急激に高まる")
-        ).join("\n");
-    }
+        let header = "";
 
-    if(currentFilter === "danger"){
-        text = lines.filter(l =>
-            l.includes("警戒") ||
-            l.includes("注意") ||
-            l.includes("危険") ||
-            l.includes("非常に激しい")
-        ).join("\n");
+        if(isFuken){
+            header = "【気象防災速報（線状降水帯直前予測）】";
+        } else if(isChiho){
+            header = "【地方気象解説情報（大雨・線状降水帯）】";
+        } else if(isZenpan){
+            header = "【全般気象解説情報（異常気象）】";
+        }
+
+        output +=
+`${header}
+${pubTime.replace("T"," ").replace("Z","")} 発表
+
+${body}
+
+------------------------
+
+`;
     }
 
     document.getElementById("result").textContent =
-        text || "該当情報なし";
-}
-
-async function getInfo(){
-
-    const result = document.getElementById("result");
-    const status = document.getElementById("status");
-
-    try{
-
-        result.textContent = "取得中...";
-        status.textContent = "";
-
-        const feedRes = await fetch(FEED_URL);
-        const feedText = await feedRes.text();
-
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(feedText,"text/xml");
-
-        const entries = [...xml.getElementsByTagName("entry")];
-
-        let target = entries.find(e=>{
-            const t = e.getElementsByTagName("title")[0]?.textContent || "";
-            return (
-                t.includes("線状降水帯") ||
-                t.includes("顕著な大雨") ||
-                t.includes("気象情報")
-            );
-        });
-
-        if(!target){
-            result.textContent = "該当情報なし";
-            return;
-        }
-
-        const link =
-            target.getElementsByTagName("link")[0]?.getAttribute("href");
-
-        const res = await fetch(link);
-        const txt = await res.text();
-
-        const xml2 = parser.parseFromString(txt,"text/xml");
-
-        const texts = [...xml2.getElementsByTagName("Text")]
-            .map(n=>n.textContent)
-            .join("\n");
-
-        cachedText =
-`【${target.getElementsByTagName("title")[0]?.textContent || ""}】
-
-${texts}`;
-
-        applyFilter();
-
-        status.textContent =
-            "最終更新: " + new Date().toLocaleString("ja-JP");
-
-    }catch(e){
-
-        console.error(e);
-
-        result.textContent =
-`取得失敗
-
-・CORS制限の可能性
-・GitHub Pagesでは失敗する場合あり`;
-
-    }
-}
-
-async function copyInfo(){
-
-    await navigator.clipboard.writeText(
-        document.getElementById("result").textContent
-    );
+        output || "該当データなし";
 
     document.getElementById("status").textContent =
-        "✅ コピーしました";
+        "最終更新: " +
+        new Date().toLocaleString("ja-JP");
 }
 
-getInfo();
+async function copyData(){
+    const text = document.getElementById("result").textContent;
+    await navigator.clipboard.writeText(text);
+    alert("コピーしました");
+}
+
+fetchData();
 
 </script>
 
