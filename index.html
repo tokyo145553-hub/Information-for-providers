@@ -92,9 +92,6 @@ header {
 }
 .side-menu.active { transform: translateX(0); }
 
-.side-menu h3 { color: var(--primary-color); }
-
-/* ACCORDION */
 .accordion-item { margin-top: 10px; }
 
 .accordion-btn {
@@ -184,6 +181,9 @@ header {
 .tag-copy { background: #0066cc; }
 .tag-unavailable { background: #cc0000; }
 
+/* ★修正：簡易版は紫統一 */
+.tag-simple { background: #6633cc; }
+
 @media (max-width:768px){
     .grid{grid-template-columns:1fr;}
     header{flex-direction:column;align-items:flex-start;}
@@ -211,6 +211,7 @@ header {
 
 <div class="overlay" onclick="toggleMenu()"></div>
 
+<!-- サイドバー（削除なし維持） -->
 <div class="side-menu" id="menu">
 
     <h3>メニュー</h3>
@@ -222,9 +223,9 @@ header {
             <a href="weather.html">気象警報</a>
             <a href="tenki.html">天気予報</a>
             <a href="typhoon.html">台風情報</a>
-            <a href="tornado.html">竜巻注意情報</a>
+            <a href="tornado.html">気象防災速報（竜巻注意）</a>
             <a href="https://script.google.com/macros/s/AKfycbwoh1YsazOyU86oMUv0RJSMhfBXs036Rz0eoi1iz6l8MruUU3oIJV0n8FOp8QCZZq6fNQ/exec">
-                気象解説情報
+                気象解説情報（地方・全般）
             </a>
         </div>
     </div>
@@ -234,11 +235,12 @@ header {
         <div class="accordion-content">
             <a href="#eq-section">地震・津波TOP</a>
             <a href="https://tokyo145553-hub.github.io/Mouyada/">地震情報</a>
-            <a href="jisin.html" class="card">地震情報（X）簡易版</a>
-            <a href="EEW.html"class="card">緊急地震速報</a>
+            <a href="jisin.html">地震情報（X）簡易版</a>
+            <a href="EEW.html">緊急地震速報</a>
         </div>
     </div>
 
+    <!-- ★その他（消してない） -->
     <div class="accordion-item">
         <button class="accordion-btn" onclick="toggleAccordion(this)">📄 その他</button>
         <div class="accordion-content">
@@ -248,6 +250,7 @@ header {
 
 </div>
 
+<!-- NAV -->
 <nav class="nav-menu">
     <a href="#weather-section" class="nav-btn">気象情報一覧</a>
 </nav>
@@ -258,86 +261,72 @@ header {
 
 <!-- 気象 -->
 <section id="weather-section">
-    <h2 class="section-title">気象情報メニュー</h2>
+<h2 class="section-title">気象情報メニュー</h2>
 
-    <div class="grid">
-        <a href="weather.html" class="card"><i class="fa-solid fa-cloud-bolt"></i><h3>気象警報</h3>
-            <div class="tags"><span class="tag-status">発表状況</span><span class="tag-copy">転載可</span></div>
-        </a>
+<div class="grid">
+    <a href="weather.html" class="card"><i class="fa-solid fa-cloud-bolt"></i><h3>気象警報</h3>
+        <div class="tags"><span class="tag-status">発表状況</span><span class="tag-copy">転載可</span></div>
+    </a>
 
-        <a href="tenki.html" class="card"><i class="fa-solid fa-temperature-full"></i><h3>天気予報</h3>
-            <div class="tags"><span class="tag-status">気象庁予報</span><span class="tag-copy">転載可</span></div>
-        </a>
+    <a href="tenki.html" class="card"><i class="fa-solid fa-temperature-full"></i><h3>天気予報</h3>
+        <div class="tags"><span class="tag-status">気象庁予報</span><span class="tag-copy">転載可</span></div>
+    </a>
 
-        <a href="typhoon.html" class="card"><i class="fa-solid fa-hurricane"></i><h3>台風情報</h3>
-            <div class="tags"><span class="tag-status">実況</span><span class="tag-copy">転載可</span></div>
-        </a>
+    <a href="typhoon.html" class="card"><i class="fa-solid fa-hurricane"></i><h3>台風情報</h3>
+        <div class="tags"><span class="tag-status">実況</span><span class="tag-copy">転載可</span></div>
+    </a>
 
-        <a href="tornado.html" class="card"><i class="fa-solid fa-tornado"></i><h3>気象防災速報（竜巻注意）</h3>
-            <div class="tags"><span class="tag-status">発表状況</span><span class="tag-copy">転載可</span></div>
-        </a>
+    <a href="tornado.html" class="card"><i class="fa-solid fa-tornado"></i><h3>気象防災速報（竜巻注意）</h3>
+        <div class="tags"><span class="tag-status">発表状況</span><span class="tag-copy">転載可</span></div>
+    </a>
 
-        <a href="https://script.google.com/macros/s/AKfycbwoh1YsazOyU86oMUv0RJSMhfBXs036Rz0eoi1iz6l8MruUU3oIJV0n8FOp8QCZZq6fNQ/exec"
-           class="card" target="_blank">
-            <i class="fa-solid fa-file-lines"></i>
-            <h3>気象解説情報（地方・全般）</h3>
-            <div class="tags">
-                <span class="tag-unavailable">外部</span>
-                <span class="tag-copy">転載可</span>
-            </div>
-        </a>
-    </div>
+    <a href="https://script.google.com/macros/s/AKfycbwoh1YsazOyU86oMUv0RJSMhfBXs036Rz0eoi1iz6l8MruUU3oIJV0n8FOp8QCZZq6fNQ/exec"
+       class="card" target="_blank">
+        <i class="fa-solid fa-file-lines"></i>
+        <h3>気象解説情報（地方・全般）</h3>
+        <div class="tags"><span class="tag-unavailable">外部</span><span class="tag-copy">転載可</span></div>
+    </a>
+</div>
 </section>
 
 <!-- 地震 -->
 <section id="eq-section">
-    <h2 class="section-title">地震・津波情報メニュー</h2>
+<h2 class="section-title">地震・津波情報メニュー</h2>
 
-    <div class="grid">
+<div class="grid">
 
-        <a href="https://tokyo145553-hub.github.io/Mouyada/" class="card">
-            <i class="fa-solid fa-earth-asia"></i>
-            <h3>地震情報</h3>
-            <div class="tags">
-                <span class="tag-unavailable">外部</span>
-                <span class="tag-copy">転載可</span>
-            </div>
-        </a>
+    <a href="https://tokyo145553-hub.github.io/Mouyada/" class="card">
+        <i class="fa-solid fa-earth-asia"></i>
+        <h3>地震情報</h3>
+        <div class="tags"><span class="tag-unavailable">外部</span><span class="tag-copy">転載可</span></div>
+    </a>
 
-　　　　 <a href="jisin.html" class="card">
-        　<h3>地震情報（X）簡易版</h3>
-            <div class="tags">
-                <span class="tag-unavailable">簡易版</span>
-                <span class="tag-copy">転載可</span>
-            </div>
-        </a>
-        
-        <!-- ★追加：緊急地震速報 -->
-        <a href="EEW.html"class="card">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <h3>緊急地震速報</h3>
-            <div class="tags">
-                <span class="tag-status">EEW</span>
-                <span class="tag-copy">転載可</span>
-            </div>
-        </a>
+    <a href="jisin.html" class="card">
+        <i class="fa-solid fa-earth-asia"></i>
+        <h3>地震情報（X）簡易版</h3>
+        <div class="tags"><span class="tag-simple">簡易版</span><span class="tag-copy">転載可</span></div>
+    </a>
 
-    </div>
+    <a href="EEW.html" class="card">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <h3>緊急地震速報</h3>
+        <div class="tags"><span class="tag-status">EEW</span><span class="tag-copy">転載可</span></div>
+    </a>
+
+</div>
 </section>
 
+<!-- その他 -->
 <section>
-    <h2 class="section-title">その他</h2>
+<h2 class="section-title">その他</h2>
 
-    <div class="grid">
-        <a href="terms.html" class="card">
-            <i class="fa-solid fa-file-contract"></i>
-            <h3>利用規約</h3>
-            <div class="tags">
-                <span class="tag-status">規約</span>
-                <span class="tag-copy">必読</span>
-            </div>
-        </a>
-    </div>
+<div class="grid">
+    <a href="terms.html" class="card">
+        <i class="fa-solid fa-file-contract"></i>
+        <h3>利用規約</h3>
+        <div class="tags"><span class="tag-status">規約</span><span class="tag-copy">必読</span></div>
+    </a>
+</div>
 </section>
 
 <footer style="text-align:center;padding:20px;color:#888;">
@@ -345,13 +334,6 @@ header {
 </footer>
 
 <script>
-function updateClock(){
-    document.getElementById("clock").textContent =
-        new Date().toLocaleTimeString('ja-JP');
-}
-setInterval(updateClock,1000);
-updateClock();
-
 function toggleMenu(){
     document.getElementById("menu").classList.toggle("active");
     document.querySelector(".overlay").classList.toggle("active");
@@ -361,6 +343,11 @@ function toggleAccordion(btn){
     const c = btn.nextElementSibling;
     c.style.display = (c.style.display==="block")?"none":"block";
 }
+
+setInterval(()=>{
+    document.getElementById("clock").textContent =
+    new Date().toLocaleTimeString("ja-JP");
+},1000);
 </script>
 
 </body>
