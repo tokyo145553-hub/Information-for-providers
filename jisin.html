@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>地震情報(X)簡易版</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
+        .quake-card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid #003b80; }
+        button { background: #003b80; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <a href="index.html">← トップへ戻る</a>
+    <h1>地震情報</h1>
+    <div id="quakeList">読み込み中...</div>
+
+    <script>
+        const API_URL = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://api.p2pquake.net/v2/history?codes=551&limit=3");
+
+        async function loadQuake() {
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                const json = JSON.parse(data.contents);
+                const container = document.getElementById("quakeList");
+                container.innerHTML = "";
+
+                json.forEach(item => {
+                    const eq = item.earthquake;
+                    const time = new Date(eq.time).toLocaleString("ja-JP");
+                    // M5.0形式に正規化
+                    const mag = eq.hypocenter.magnitude !== null ? "M" + parseFloat(eq.hypocenter.magnitude).toFixed(1) : "不明";
+                    
+                    const text = `${time}頃、最大震度${scaleToShindo(eq.maxScale)}の地震がありました。\n震源地: ${eq.hypocenter.name || "不明"}\n深さ: ${eq.hypocenter.depth === 0 ? "ごく浅い" : eq.hypocenter.depth + "km"}\nマグニチュード: ${mag}`;
+                    
+                    const div = document.createElement("div");
+                    div.className = "quake-card";
+                    div.innerHTML = `<pre style="white-space:pre-wrap;">${text}</pre><button onclick="copyText(this)">📋 コピー</button>`;
+                    container.appendChild(div);
+                });
+            } catch(e) { document.getElementById("quakeList").textContent = "データ取得エラー"; }
+        }
+
+        function scaleToShindo(s){
+            const map = {10:"1", 20:"2", 30:"3", 40:"4", 45:"5弱", 50:"5強", 55:"6弱", 60:"6強", 70:"7"};
+            return map[s] || "不明";
+        }
+
+        function copyText(btn) {
+            navigator.clipboard.writeText(btn.previousElementSibling.textContent);
+            btn.textContent = "✅ コピー済み";
+            setTimeout(() => btn.textContent = "📋 コピー", 2000);
+        }
+        loadQuake();
+    </script>
+</body>
+</html>
