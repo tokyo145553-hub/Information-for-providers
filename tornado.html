@@ -3,24 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>気象防災速報（竜巻注意）</title>
+<title>竜巻注意情報</title>
 <style>
     body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
+    #backBtn { display: inline-block; margin-bottom: 15px; padding: 10px 16px; background: #0066cc; color: white; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: bold; }
+    #backBtn:hover { background: #0055aa; }
     h1 { text-align: center; margin-top: 0; }
     .buttons { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
-    button { padding: 10px 18px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; background: #0066cc; color: white; }
+    button { padding: 10px 18px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; }
     button:hover { opacity: 0.85; }
-    #status { text-align: center; margin-bottom: 10px; color: #555; font-size: 14px; }
-    #result { background: white; border: 1px solid #ccc; border-radius: 10px; padding: 20px; line-height: 1.6; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .item { border-bottom: 1px solid #eee; padding: 10px 0; }
+    #status { text-align: center; margin-bottom: 10px; color: green; font-size: 14px; }
+    .report-card { background: white; border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 </style>
 </head>
 <body>
 
-<h1>気象防災速報（竜巻注意）</h1>
+<a href="index.html" id="backBtn">← トップへ戻る</a>
+<h1>竜巻注意情報</h1>
 
 <div class="buttons">
     <button onclick="getTatsumakiInfo()">🔄 更新</button>
+    <button onclick="copyInfo()">📋 コピー</button>
 </div>
 
 <div id="status"></div>
@@ -29,38 +32,73 @@
 <script>
 async function getTatsumakiInfo() {
     const FEED_URL = "https://www.data.jma.go.jp/developer/xml/feed/extra.xml";
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(FEED_URL)}`;
-    const result = document.getElementById("result");
+    const resultDiv = document.getElementById("result");
     const status = document.getElementById("status");
 
     try {
-        result.innerHTML = "取得中...";
-        const response = await fetch(proxyUrl);
-        const data = await response.json();
+        resultDiv.innerHTML = "取得中...";
+        status.textContent = "";
+
+        const response = await fetch(FEED_URL);
+        const text = await response.text();
         const parser = new DOMParser();
-        const xml = parser.parseFromString(data.contents, "text/xml");
-        
-        const entries = [...xml.getElementsByTagName("entry")];
-        const tornadoEntries = entries.filter(e => e.getElementsByTagName("title")[0]?.textContent === "竜巻注意情報");
+        const xmlDoc = parser.parseFromString(text, "text/xml");
+        const entries = Array.from(xmlDoc.getElementsByTagName("entry"));
+
+        const tornadoEntries = entries.filter(e => 
+            e.getElementsByTagName("title")[0]?.textContent === "竜巻注意情報"
+        ).slice(0, 5);
 
         if (tornadoEntries.length === 0) {
-            result.innerHTML = "現在、気象防災速報（竜巻注意）は発表されていません。";
-        } else {
-            result.innerHTML = "";
-            tornadoEntries.slice(0, 5).forEach(entry => {
-                const title = entry.getElementsByTagName("title")[0].textContent;
-                const updated = entry.getElementsByTagName("updated")[0].textContent;
-                const div = document.createElement("div");
-                div.className = "item";
-                div.innerHTML = `<strong>${title}</strong><br><small>${new Date(updated).toLocaleString()}</small>`;
-                result.appendChild(div);
-            });
+            resultDiv.innerHTML = "<p>現在、発表されている竜巻注意情報はありません。</p>";
+            return;
         }
+
+        let htmlOutput = "";
+
+        for (const entry of tornadoEntries) {
+            const updated = entry.getElementsByTagName("updated")[0].textContent;
+            const detailUrl = entry.getElementsByTagName("id")[0].textContent;
+            const content = entry.getElementsByTagName("content")[0]?.textContent || "";
+            
+            const areaMatch = content.match(/^【(.*?)気象防災速報（竜巻注意）】/);
+            const areaName = areaMatch ? areaMatch[1] : "不明";
+            const bodyText = content.replace(/^【.*?】/, "").trim();
+            const dateStr = new Date(updated).toLocaleString("ja-JP");
+
+            // 詳細データの取得（必要に応じてCORS回避策を導入してください）
+            const detailRes = await fetch(detailUrl);
+            const detailXml = parser.parseFromString(await detailRes.text(), "text/xml");
+            
+            const reportNo = detailXml.getElementsByTagName("Serial")[0]?.textContent || "不明";
+            const valid = detailXml.getElementsByTagName("ValidDateTime")[0]?.textContent || "不明";
+            const validStr = valid !== "不明" ? new Date(valid).toLocaleString("ja-JP") : "不明";
+
+            htmlOutput += `
+            <div class="report-card">
+                <h3>${areaName}気象防災速報（竜巻注意） 第${reportNo}号</h3>
+                <p>${dateStr} 気象庁発表</p>
+                <p>${bodyText}</p>
+                <p><b>有効期限: ${validStr} まで</b></p>
+            </div>`;
+        }
+
+        resultDiv.innerHTML = htmlOutput;
         status.textContent = "最終更新: " + new Date().toLocaleString("ja-JP");
+
     } catch (e) {
-        result.textContent = "データの取得に失敗しました。";
-        console.error(e);
+        resultDiv.innerHTML = `<p>エラーが発生しました: ${e.message}</p>`;
+        status.textContent = "取得失敗";
     }
+}
+
+function copyInfo() {
+    const text = document.getElementById("result").innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        const status = document.getElementById("status");
+        status.textContent = "✅ コピーしました";
+        setTimeout(() => status.textContent = "最終更新: " + new Date().toLocaleString("ja-JP"), 2000);
+    });
 }
 
 getTatsumakiInfo();
