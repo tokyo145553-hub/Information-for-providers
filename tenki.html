@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>天気予報</title>
+<style>
+body{font-family:sans-serif;max-width:900px;margin:40px auto;padding:20px;background:#f5f5f5;}
+#backBtn{display:inline-block;margin-bottom:15px;padding:10px 16px;background:#0066cc;color:white;text-decoration:none;border-radius:8px;font-size:14px;font-weight:bold;}
+h1{text-align:center;margin-top:0;}
+.buttons{display:flex;justify-content:center;gap:10px;margin-bottom:15px;}
+button{padding:10px 18px;font-size:16px;border:none;border-radius:8px;cursor:pointer;background:#003b80;color:white;}
+#status{text-align:center;margin-bottom:10px;color:green;font-size:14px;}
+#result{white-space:pre-line;background:white;border:1px solid #ccc;border-radius:10px;padding:20px;line-height:1.8;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+</style>
+</head>
+<body>
+
+<a href="index.html" id="backBtn">← トップへ戻る</a>
+<h1>天気予報</h1>
+
+<div class="buttons">
+    <button onclick="fetchWeather()">🔄 更新</button>
+    <button onclick="copyInfo()">📋 コピー</button>
+</div>
+<div id="status"></div>
+<div id="result">読み込み中...</div>
+
+<script>
+// 天気変換ロジック（そのまま移植）
+function shortWeather(text) {
+    const clean = text.replace(/ /g, '');
+    const matches = clean.match(/晴れ|くもり|雨|雪|雷/g) || [];
+    if (matches.length === 0) return clean;
+    if (matches.length === 1) return matches[0];
+    return `${matches[0]}のち${matches[1]}`;
+}
+
+function emojiFlow(text) {
+    const map = {'晴れ':'☀️', 'くもり':'☁️', '雨':'☔', '雪':'⛄', '雷':'⚡'};
+    const words = text.match(/晴れ|くもり|雨|雪|雷/g) || [];
+    const uniq = [...new Set(words)];
+    return uniq.length === 1 ? (map[uniq[0]] || '') : `${map[uniq[0]] || ''}→${map[uniq[1]] || ''}`;
+}
+
+async function fetchWeather() {
+    const POINTS = [
+        { name: '□札幌 ', office: '016000' },
+        { name: '□仙台 ', office: '040000' },
+        { name: '□東京 ', office: '130000' },
+        { name: '□名古屋', office: '230000' },
+        { name: '□大阪 ', office: '270000' },
+        { name: '□広島 ', office: '340000' },
+        { name: '□福岡 ', office: '400000' },
+        { name: '□那覇 ', office: '471000' },
+    ];
+
+    const now = new Date();
+    const hour = now.getHours();
+    const isTomorrow = hour >= 12; // 12時以降は明日の予報を表示
+    const timeLabel = isTomorrow ? "明日" : "今日";
+
+    try {
+        const results = await Promise.all(POINTS.map(async p => {
+            const res = await fetch(`https://www.jma.go.jp/bosai/forecast/data/forecast/${p.office}.json`);
+            const data = await res.json();
+            const weather = data[0].timeSeries[0].areas[0].weathers[isTomorrow ? 1 : 0];
+            const short = shortWeather(weather);
+            return `${p.name} ${emojiFlow(short)} ${short}`;
+        }));
+
+        document.getElementById("result").textContent = `≪天気予報≫\n${timeLabel}\n\n` + results.join('\n');
+        document.getElementById("status").textContent = "最終更新: " + now.toLocaleString();
+    } catch (e) {
+        document.getElementById("result").textContent = "データ取得エラー（CORS制限の可能性があります）";
+    }
+}
+
+function copyInfo() {
+    const text = document.getElementById("result").textContent;
+    navigator.clipboard.writeText(text);
+    alert("コピーしました");
+}
+
+fetchWeather();
+</script>
+</body>
+</html>
