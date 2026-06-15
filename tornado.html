@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>気象防災速報（竜巻注意）</title>
+<style>
+    body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
+    h1 { text-align: center; margin-top: 0; }
+    .buttons { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+    button { padding: 10px 18px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; background: #0066cc; color: white; }
+    button:hover { opacity: 0.85; }
+    #status { text-align: center; margin-bottom: 10px; color: #555; font-size: 14px; }
+    #result { background: white; border: 1px solid #ccc; border-radius: 10px; padding: 20px; line-height: 1.6; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .item { border-bottom: 1px solid #eee; padding: 10px 0; }
+</style>
+</head>
+<body>
+
+<h1>気象防災速報（竜巻注意）</h1>
+
+<div class="buttons">
+    <button onclick="getTatsumakiInfo()">🔄 更新</button>
+</div>
+
+<div id="status"></div>
+<div id="result">読み込み待機中...</div>
+
+<script>
+async function getTatsumakiInfo() {
+    const FEED_URL = "https://www.data.jma.go.jp/developer/xml/feed/extra.xml";
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(FEED_URL)}`;
+    const result = document.getElementById("result");
+    const status = document.getElementById("status");
+
+    try {
+        result.innerHTML = "取得中...";
+        const response = await fetch(proxyUrl);
+        const data = await response.json();
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(data.contents, "text/xml");
+        
+        const entries = [...xml.getElementsByTagName("entry")];
+        const tornadoEntries = entries.filter(e => e.getElementsByTagName("title")[0]?.textContent === "竜巻注意情報");
+
+        if (tornadoEntries.length === 0) {
+            result.innerHTML = "現在、気象防災速報（竜巻注意）は発表されていません。";
+        } else {
+            result.innerHTML = "";
+            tornadoEntries.slice(0, 5).forEach(entry => {
+                const title = entry.getElementsByTagName("title")[0].textContent;
+                const updated = entry.getElementsByTagName("updated")[0].textContent;
+                const div = document.createElement("div");
+                div.className = "item";
+                div.innerHTML = `<strong>${title}</strong><br><small>${new Date(updated).toLocaleString()}</small>`;
+                result.appendChild(div);
+            });
+        }
+        status.textContent = "最終更新: " + new Date().toLocaleString("ja-JP");
+    } catch (e) {
+        result.textContent = "データの取得に失敗しました。";
+        console.error(e);
+    }
+}
+
+getTatsumakiInfo();
+</script>
+</body>
+</html>
