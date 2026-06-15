@@ -211,16 +211,14 @@ header {
 
 <div class="overlay" onclick="toggleMenu()"></div>
 
-<!-- SIDE MENU -->
 <div class="side-menu" id="menu">
 
     <h3>メニュー</h3>
 
-    <!-- 気象 -->
     <div class="accordion-item">
         <button class="accordion-btn" onclick="toggleAccordion(this)">🌤 気象情報</button>
         <div class="accordion-content">
-            <a href="#weather-section" onclick="toggleMenu()">気象情報一覧TOP</a>
+            <a href="#weather-section">気象情報一覧TOP</a>
             <a href="weather.html">気象警報</a>
             <a href="tenki.html">天気予報</a>
             <a href="typhoon.html">台風情報</a>
@@ -231,16 +229,14 @@ header {
         </div>
     </div>
 
-    <!-- 地震 -->
     <div class="accordion-item">
         <button class="accordion-btn" onclick="toggleAccordion(this)">🌏 地震・津波情報</button>
         <div class="accordion-content">
-            <a href="#eq-section" onclick="toggleMenu()">地震・津波一覧TOP</a>
+            <a href="#eq-section">地震・津波TOP</a>
             <a href="https://tokyo145553-hub.github.io/Mouyada/">地震情報</a>
         </div>
     </div>
 
-    <!-- その他 -->
     <div class="accordion-item">
         <button class="accordion-btn" onclick="toggleAccordion(this)">📄 その他</button>
         <div class="accordion-content">
@@ -250,12 +246,10 @@ header {
 
 </div>
 
-<!-- 気象ナビ -->
 <nav class="nav-menu">
     <a href="#weather-section" class="nav-btn">気象情報一覧</a>
 </nav>
 
-<!-- 地震ナビ（追加） -->
 <nav class="nav-menu">
     <a href="#eq-section" class="nav-btn">地震・津波情報一覧</a>
 </nav>
@@ -265,53 +259,31 @@ header {
     <h2 class="section-title">気象情報メニュー</h2>
 
     <div class="grid">
-
-        <a href="weather.html" class="card">
-            <i class="fa-solid fa-cloud-bolt"></i>
-            <h3>気象警報</h3>
-            <div class="tags">
-                <span class="tag-status">警報・注意報</span>
-                <span class="tag-copy">転載可</span>
-            </div>
+        <a href="weather.html" class="card"><i class="fa-solid fa-cloud-bolt"></i><h3>気象警報</h3>
+            <div class="tags"><span class="tag-status">発表状況</span><span class="tag-copy">転載可</span></div>
         </a>
 
-        <a href="tenki.html" class="card">
-            <i class="fa-solid fa-temperature-full"></i>
-            <h3>天気予報</h3>
-            <div class="tags">
-                <span class="tag-status">公式予報</span>
-                <span class="tag-copy">転載可</span>
-            </div>
+        <a href="tenki.html" class="card"><i class="fa-solid fa-temperature-full"></i><h3>天気予報</h3>
+            <div class="tags"><span class="tag-status">気象庁予報</span><span class="tag-copy">転載可</span></div>
         </a>
 
-        <a href="typhoon.html" class="card">
-            <i class="fa-solid fa-hurricane"></i>
-            <h3>台風情報</h3>
-            <div class="tags">
-                <span class="tag-status">実況情報</span>
-                <span class="tag-copy">転載可</span>
-            </div>
+        <a href="typhoon.html" class="card"><i class="fa-solid fa-hurricane"></i><h3>台風情報</h3>
+            <div class="tags"><span class="tag-status">実況</span><span class="tag-copy">転載可</span></div>
         </a>
 
-        <a href="tornado.html" class="card">
-            <i class="fa-solid fa-tornado"></i>
-            <h3>竜巻注意情報</h3>
-            <div class="tags">
-                <span class="tag-status">注意情報</span>
-                <span class="tag-copy">転載可</span>
-            </div>
+        <a href="tornado.html" class="card"><i class="fa-solid fa-tornado"></i><h3>気象防災速報（竜巻注意）</h3>
+            <div class="tags"><span class="tag-status">発表状況</span><span class="tag-copy">転載可</span></div>
         </a>
 
         <a href="https://script.google.com/macros/s/AKfycbwoh1YsazOyU86oMUv0RJSMhfBXs036Rz0eoi1iz6l8MruUU3oIJV0n8FOp8QCZZq6fNQ/exec"
            class="card" target="_blank">
             <i class="fa-solid fa-file-lines"></i>
-            <h3>気象解説情報</h3>
+            <h3>気象解説情報（地方・全般）</h3>
             <div class="tags">
                 <span class="tag-unavailable">外部</span>
                 <span class="tag-copy">転載可</span>
             </div>
         </a>
-
     </div>
 </section>
 
@@ -330,10 +302,19 @@ header {
             </div>
         </a>
 
+        <!-- ★追加：緊急地震速報 -->
+        <a href="EEW.html"class="card">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <h3>緊急地震速報</h3>
+            <div class="tags">
+                <span class="tag-status">EEW</span>
+                <span class="tag-copy">転載可</span>
+            </div>
+        </a>
+
     </div>
 </section>
 
-<!-- その他 -->
 <section>
     <h2 class="section-title">その他</h2>
 
