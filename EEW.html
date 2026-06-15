@@ -155,17 +155,17 @@ async function loadEEW(){
                 : "緊急地震速報（予報）";
 
             text =
-`【${title}】
-# 第${id}報
+`【${type}】
+# 第${reportNum}報${final}
 
 震源地　${region}
-最大震度　${intensity}
-地震の規模　M${mag}
+推定最大震度　${intensity}
+地震の規模　M${magnitude}
 震源の深さ　${depth}km
 
-${time}`;発生
+${origin}発生
 
-出典WolfxAPI
+出典WolfxAPI`;
             if(isWarning){
                 result.style.background = "#ff4d4d";
                 result.style.color = "#000";
