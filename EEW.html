@@ -26,16 +26,11 @@ body{
     font-weight:bold;
 }
 
-#backBtn:hover{
-    background:#0055aa;
-}
-
 h1{
     text-align:center;
     margin-top:0;
 }
 
-/* ボタン */
 .buttons{
     display:flex;
     justify-content:center;
@@ -51,10 +46,6 @@ button{
     cursor:pointer;
 }
 
-button:hover{
-    opacity:0.85;
-}
-
 #status{
     text-align:center;
     margin-bottom:10px;
@@ -62,7 +53,7 @@ button:hover{
     font-size:14px;
 }
 
-/* 台風UI風ボックス */
+/* 台風UI風 */
 #result{
     white-space:pre-line;
     background:white;
@@ -88,7 +79,6 @@ button:hover{
 </div>
 
 <div id="status">待機中</div>
-
 <div id="result">未取得</div>
 
 <script>
@@ -105,14 +95,9 @@ async function loadEEW(){
     try{
 
         status.textContent = "取得中...";
-        
+
         const res = await fetch(url);
         const raw = await res.json();
-
-        if(!raw){
-            result.textContent = "データなし";
-            return;
-        }
 
         const id = raw.report_num ?? raw.Serial ?? "-";
         if(id === lastId){
@@ -127,59 +112,27 @@ async function loadEEW(){
         const depth = raw.depth ?? raw.Depth ?? "-";
         const time = raw.origin_time ?? raw.OriginTime ?? "-";
 
-        const alert = raw.alertflg ?? raw.AlertFlg ?? raw.isWarn;
-        const isWarning =
-            String(alert).toLowerCase() === "警報" ||
-            String(alert).toLowerCase() === "warning" ||
-            String(alert) === "1" ||
-            String(alert) === "true";
-
-        const isCancel = raw.is_cancel ?? raw.isCancel ?? false;
+        const isFinal = raw.is_final ?? raw.isFinal ?? false;
 
         let text = "";
 
-        if(isCancel){
-
-            text =
-`【緊急地震速報（取消）】
-
-先ほどの情報は取り消されました。`;
-
-            result.style.background = "#666";
-            result.style.color = "#fff";
-
-        }else{
-
-            const title = isWarning
-                ? "🚨緊急地震速報（警報）🚨"
-                : "緊急地震速報（予報）";
-
-            text =
-`【${type}】
-# 第${reportNum}報${final}
+        text =
+`【緊急地震速報（予報）】
+# 第${id}報${isFinal ? "（最終報）" : ""}
 
 震源地　${region}
 推定最大震度　${intensity}
-地震の規模　M${magnitude}
+地震の規模　M${mag}
 震源の深さ　${depth}km
 
-${origin}発生
+${time}発生
 
 出典WolfxAPI`;
-            if(isWarning){
-                result.style.background = "#ff4d4d";
-                result.style.color = "#000";
-            }else{
-                result.style.background = "#ffffff";
-                result.style.color = "#000";
-            }
-        }
 
         result.textContent = text;
         status.textContent = "更新: " + new Date().toLocaleTimeString();
 
     }catch(e){
-
         result.textContent = "取得失敗（APIエラー or CORS）";
         status.textContent = "エラー";
         console.log(e);
