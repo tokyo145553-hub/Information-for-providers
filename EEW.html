@@ -3,74 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>緊急地震速報</title>
-
+<title>緊急地震速報 | TokyoEastBranch</title>
 <style>
-body{
-    font-family:sans-serif;
-    max-width:900px;
-    margin:40px auto;
-    padding:20px;
-    background:#f5f5f5;
-}
-
-#backBtn{
-    display:inline-block;
-    margin-bottom:15px;
-    padding:10px 16px;
-    background:#0066cc;
-    color:white;
-    text-decoration:none;
-    border-radius:8px;
-    font-size:14px;
-    font-weight:bold;
-}
-
-h1{
-    text-align:center;
-    margin-top:0;
-}
-
-.buttons{
-    display:flex;
-    justify-content:center;
-    gap:10px;
-    margin-bottom:15px;
-}
-
-button{
-    padding:10px 18px;
-    font-size:16px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-}
-
-#status{
-    text-align:center;
-    margin-bottom:10px;
-    color:green;
-    font-size:14px;
-}
-
-/* 台風UI風 */
-#result{
-    white-space:pre-line;
-    background:white;
-    border:1px solid #ccc;
-    border-radius:10px;
-    padding:20px;
-    line-height:1.8;
-    box-shadow:0 2px 5px rgba(0,0,0,0.1);
-    font-weight:bold;
-}
+    body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
+    #backBtn { display:inline-block; margin-bottom:15px; padding:10px 16px; background:#0066cc; color:white; text-decoration:none; border-radius:8px; font-weight:bold; }
+    .buttons { display:flex; justify-content:center; gap:10px; margin-bottom:15px; }
+    button { padding:10px 18px; font-size:16px; border:none; border-radius:8px; cursor:pointer; background:#003b80; color:white; }
+    #status { text-align:center; margin-bottom:10px; font-weight:bold; }
+    #result { white-space:pre-line; background:white; border:1px solid #ccc; border-radius:10px; padding:20px; line-height:1.8; box-shadow:0 2px 5px rgba(0,0,0,0.1); font-weight:bold; transition: background 0.3s, color 0.3s; }
 </style>
 </head>
-
 <body>
 
 <a href="index.html" id="backBtn">← トップへ戻る</a>
-
 <h1>緊急地震速報</h1>
 
 <div class="buttons">
@@ -79,72 +24,67 @@ button{
 </div>
 
 <div id="status">待機中</div>
-<div id="result">未取得</div>
+<div id="result">情報を取得中...</div>
 
 <script>
-
 let lastId = null;
 
-async function loadEEW(){
-
-    const url = "https://api.wolfx.jp/jma_eew.json?t=" + Date.now();
-
+async function loadEEW() {
     const result = document.getElementById("result");
     const status = document.getElementById("status");
-
-    try{
-
-        status.textContent = "取得中...";
-
-        const res = await fetch(url);
+    
+    try {
+        const res = await fetch("https://api.wolfx.jp/jma_eew.json?t=" + Date.now());
         const raw = await res.json();
+        if (!raw) return;
 
         const id = raw.report_num ?? raw.Serial ?? "-";
-        if(id === lastId){
-            status.textContent = "更新なし";
+        if (id === lastId && lastId !== null) {
+            status.textContent = "最新情報です";
             return;
         }
         lastId = id;
 
-        const region = raw.region_name ?? raw.Hypocenter ?? "-";
-        const intensity = raw.calcintensity ?? raw.MaxIntensity ?? "-";
-        const mag = raw.magunitude ?? raw.Magunitude ?? "-";
-        const depth = raw.depth ?? raw.Depth ?? "-";
-        const time = raw.origin_time ?? raw.OriginTime ?? "-";
-
+        // 判定ロジック
+        const isCancel = raw.is_cancel ?? raw.isCancel ?? false;
+        const alertRaw = raw.alertflg ?? raw.AlertFlg ?? raw.isWarn;
+        const isWarning = String(alertRaw).toLowerCase() === "警報" || String(alertRaw).toLowerCase() === "warning" || String(alertRaw) === "1" || String(alertRaw) === "true";
         const isFinal = raw.is_final ?? raw.isFinal ?? false;
 
         let text = "";
-
-        text =
-`【緊急地震速報（予報）】
-# 第${id}報${isFinal ? "（最終報）" : ""}
-
-震源地　${region}
-推定最大震度　${intensity}
-地震の規模　M${mag}
-震源の深さ　${depth}km
-
-${time}発生
-
-出典WolfxAPI`;
+        if (isCancel) {
+            text = "【緊急地震速報（取消）】\n\n先ほどの速報は取り消されました。";
+            result.style.background = "#555";
+            result.style.color = "#fff";
+        } else {
+            const type = isWarning ? "🚨緊急地震速報（警報）🚨" : "緊急地震速報（予報）";
+            text = `【${type}】\n# 第${id}報${isFinal ? "（最終報）" : ""}\n\n震源地 ${raw.region_name ?? raw.Hypocenter ?? "-"}\n推定最大震度 ${raw.calcintensity ?? raw.MaxIntensity ?? "-"}\n地震の規模 M${raw.magunitude ?? raw.Magunitude ?? "-"}\n震源の深さ ${raw.depth ?? raw.Depth ?? "-"}km\n\n${raw.origin_time ?? raw.OriginTime ?? "-"}発生\n\n出典:WolfxAPI`;
+            
+            if (isWarning) {
+                result.style.background = "#ff4d4d";
+                result.style.color = "#000";
+            } else {
+                result.style.background = "#fff";
+                result.style.color = "#000";
+            }
+        }
 
         result.textContent = text;
-        status.textContent = "更新: " + new Date().toLocaleTimeString();
-
-    }catch(e){
-        result.textContent = "取得失敗（APIエラー or CORS）";
-        status.textContent = "エラー";
-        console.log(e);
+        status.textContent = "最終更新: " + new Date().toLocaleTimeString();
+    } catch(e) {
+        status.textContent = "取得エラー";
+        console.error(e);
     }
 }
 
-function copyInfo(){
-    navigator.clipboard.writeText(
-        document.getElementById("result").textContent
-    );
+function copyInfo() {
+    navigator.clipboard.writeText(document.getElementById("result").textContent);
+    alert("コピーしました");
 }
 
+// 自動更新（2秒間隔）
+loadEEW();
+setInterval(loadEEW, 2000);
 </script>
 
 </body>
