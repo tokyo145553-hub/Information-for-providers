@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>津波情報 | TokyoEastBranch</title>
 <style>
     body { font-family: sans-serif; background: #f5f5f5; padding: 20px; max-width: 900px; margin: auto; }
@@ -20,23 +21,24 @@
     <script>
         async function loadTsunami() {
             const content = document.getElementById("content");
+            // APIの直接アクセスが失敗する場合、corsproxy.ioを経由して安定化させる
+            const API_URL = "https://corsproxy.io/?https://api.p2pquake.net/v2/history?codes=552&limit=1";
+            
             try {
-                const res = await fetch("https://api.p2pquake.net/v2/history?codes=552&limit=1");
+                const res = await fetch(API_URL);
+                if (!res.ok) throw new Error("APIサーバーの応答がありません");
                 const data = await res.json();
                 
-                if (data.length === 0 || data[0].tsunami.cancelled) {
-                    content.innerHTML = "現在、発表されている津波情報はありません。（フィードが流れた可能性あり）";
+                if (data.length === 0 || (data[0].tsunami && data[0].tsunami.cancelled)) {
+                    content.innerHTML = "現在、発表されている津波情報はありません。";
                     return;
                 }
 
                 const t = data[0].tsunami;
                 const time = new Date(data[0].time).toLocaleString("ja-JP");
                 
-                // 地域をグレードごとに分類
                 const grades = { "津波警報": [], "津波注意報": [], "津波予報(若干の海面変動)": [] };
-                t.areas.forEach(a => {
-                    if (grades[a.grade]) grades[a.grade].push(a.name);
-                });
+                t.areas.forEach(a => { if (grades[a.grade]) grades[a.grade].push(a.name); });
 
                 content.innerHTML = `
                     <h3>《津波に関する情報》</h3>
@@ -48,7 +50,12 @@
                     ${grades["津波予報(若干の海面変動)"].length ? `<p class="info">🟦津波予報(若干の海面変動)🟦<br>${grades["津波予報(若干の海面変動)"].join(" ")}</p>` : ""}
                     <button onclick="copyText()">📋 内容をコピー</button>
                 `;
-            } catch(e) { content.textContent = "データ取得エラー"; }
+            } catch(e) {
+                content.innerHTML = `<p>データ取得エラーが発生しました。</p>
+                                     <p>APIの死活状況を確認してください: <br>
+                                     <a href="https://api.p2pquake.net/v2/history?codes=552&limit=1" target="_blank">P2P APIを確認</a></p>`;
+                console.error(e);
+            }
         }
 
         function copyText() {
