@@ -56,24 +56,16 @@ async function loadEEW() {
             text = "【緊急地震速報（取消）】\n\n先ほどの速報は取り消されました。";
             result.style.background = "#555";
             result.style.color = "#fff";
-              I`;} else {
+        } else {
             const type = isWarning ? "🚨緊急地震速報（警報）🚨" : "緊急地震速報（予報）";
             
-            // マグニチュードの処理
+            // マグニチュードの処理（数値なら小数点第一位まで表示）
             const magRaw = raw.magunitude ?? raw.Magunitude;
             const mag = (typeof magRaw === 'number') ? magRaw.toFixed(1) : (magRaw ?? "-");
 
             text = `【${type}】\n# 第${id}報${isFinal ? "（最終報）" : ""}\n\n震源地 ${raw.region_name ?? raw.Hypocenter ?? "-"}\n推定最大震度 ${raw.calcintensity ?? raw.MaxIntensity ?? "-"}\n地震の規模 M${mag}\n震源の深さ ${raw.depth ?? raw.Depth ?? "-"}km\n\n${raw.origin_time ?? raw.OriginTime ?? "-"}発生\n\n出典:WolfxAPI`;
             
-            if (isWarning) {
-                result.style.background = "#ff4d4d";
-                result.style.color = "#000";
-            } else {
-                result.style.background = "#fff";
-                result.style.color = "#000";
-            }
-        }
-            
+            // スタイル適用
             if (isWarning) {
                 result.style.background = "#ff4d4d";
                 result.style.color = "#000";
