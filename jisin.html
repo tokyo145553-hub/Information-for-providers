@@ -5,35 +5,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>地震情報(X)簡易版</title>
 <style>
-body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
-#backBtn { display:inline-block; margin-bottom:15px; padding:10px 16px; background:#0066cc; color:white; text-decoration:none; border-radius:8px; font-size:14px; font-weight:bold; }
-h1 { text-align: center; margin-top: 0; color: #333; }
-.buttons { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
-button { padding: 10px 18px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; background: #003b80; color: white; }
-#status { text-align: center; margin-bottom: 10px; color: green; font-size: 14px; }
-.quake-card { background: white; border: 1px solid #ccc; border-radius: 10px; padding: 20px; line-height: 1.8; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
-pre { margin: 0; font-family: inherit; white-space: pre-wrap; }
+    body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
+    #backBtn { display:inline-block; margin-bottom:15px; padding:10px 16px; background:#0066cc; color:white; text-decoration:none; border-radius:8px; font-size:14px; font-weight:bold; }
+    h1 { text-align: center; margin-top: 0; color: #333; }
+    .buttons { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+    button { padding: 10px 18px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; background: #003b80; color: white; transition: background 0.3s; }
+    button:disabled { background: #888; cursor: not-allowed; }
+    #status { text-align: center; margin-bottom: 10px; color: #555; font-size: 14px; }
+    .quake-card { background: white; border: 1px solid #ccc; border-radius: 10px; padding: 20px; line-height: 1.8; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
+    pre { margin: 0; font-family: inherit; white-space: pre-wrap; word-wrap: break-word; }
 </style>
 </head>
 <body>
 
 <a href="index.html" id="backBtn">← トップへ戻る</a>
 <h1>地震情報（X）簡易版</h1>
-<div class="buttons"><button onclick="loadQuake()">🔄 更新</button></div>
-<div id="status">読み込み中...</div>
+<div class="buttons">
+    <button id="refreshBtn" onclick="loadQuake()">🔄 最新情報を更新</button>
+</div>
+<div id="status">準備完了</div>
 <div id="quakeList"></div>
 
 <script>
-// プロキシを変更して再試行します
 const API_URL = "https://api.p2pquake.net/v2/history?codes=551&limit=3";
 const PROXY = "https://corsproxy.io/?" + encodeURIComponent(API_URL);
 
 async function loadQuake() {
     const list = document.getElementById("quakeList");
     const status = document.getElementById("status");
+    const btn = document.getElementById("refreshBtn");
+    
+    // 読み込み中のUI処理
+    btn.disabled = true;
+    btn.textContent = "取得中...";
+    status.textContent = "サーバーから情報を取得しています...";
     
     try {
-        list.textContent = "取得中...";
         const res = await fetch(PROXY);
         if (!res.ok) throw new Error('通信エラー');
         const json = await res.json();
@@ -42,23 +49,27 @@ async function loadQuake() {
         json.forEach(item => {
             const eq = item.earthquake;
             const date = new Date(eq.time);
-            const timeStr = `${date.getFullYear()}年${pad(date.getMonth() + 1)}月${pad(date.getDate())}日${pad(date.getHours())}時${pad(date.getMinutes())}分`;
+            const timeStr = `${date.getFullYear()}年${pad(date.getMonth() + 1)}月${pad(date.getDate())}日 ${pad(date.getHours())}時${pad(date.getMinutes())}分`;
             const mag = eq.hypocenter.magnitude !== null ? parseFloat(eq.hypocenter.magnitude).toFixed(1) : "不明";
             
             const text = `${timeStr}頃、最大震度${scaleToShindo(eq.maxScale)}の地震がありました。
-震源地は${eq.hypocenter.name || "不明"}、震源の深さは${eq.hypocenter.depth === 0 ? "ごく浅い" : eq.hypocenter.depth + "km"}、
+震源地は${eq.hypocenter.name || "不明"}、深さは${eq.hypocenter.depth === 0 ? "ごく浅い" : eq.hypocenter.depth + "km"}、
 マグニチュードは${mag}と推定されています。
 この地震による津波の心配はありません。`;
 
             const div = document.createElement("div");
             div.className = "quake-card";
-            div.innerHTML = `<pre>${text}</pre><button onclick="copyText(this)">📋 コピー</button>`;
+            div.innerHTML = `<pre>${text}</pre><button onclick="copyText(this)" style="margin-top:10px; background:#444;">📋 コピー</button>`;
             list.appendChild(div);
         });
         status.textContent = "最終更新: " + new Date().toLocaleTimeString();
     } catch (e) {
-        list.textContent = "エラーが発生しました。時間を置いて更新ボタンを押してください。";
+        list.innerHTML = `<div class="quake-card">エラーが発生しました。時間を置いて再度お試しください。<br>${e.message}</div>`;
+        status.textContent = "更新失敗";
         console.error(e);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "🔄 最新情報を更新";
     }
 }
 
@@ -68,11 +79,14 @@ function scaleToShindo(s){
     return map[s] || "不明";
 }
 function copyText(btn) {
-    navigator.clipboard.writeText(btn.previousElementSibling.textContent);
+    const text = btn.previousElementSibling.textContent;
+    navigator.clipboard.writeText(text);
+    const originalText = btn.textContent;
     btn.textContent = "✅ コピー済み";
-    setTimeout(() => btn.textContent = "📋 コピー", 2000);
+    setTimeout(() => btn.textContent = originalText, 2000);
 }
 
+// ページ読み込み時に自動取得
 loadQuake();
 </script>
 </body>
