@@ -21,13 +21,15 @@
     <script>
         async function loadTsunami() {
             const content = document.getElementById("content");
-            // APIの直接アクセスが失敗する場合、corsproxy.ioを経由して安定化させる
-            const API_URL = "https://corsproxy.io/?https://api.p2pquake.net/v2/history?codes=552&limit=1";
+            // 【重要】CORSエラーを回避するために cors-anywhere のような公共プロキシを利用
+            // ただし、これらは過負荷で止まることがあるため、動かない場合はURLを変更する必要があります
+            const PROXY = "https://api.allorigins.win/get?url=";
+            const TARGET = encodeURIComponent("https://api.p2pquake.net/v2/history?codes=552&limit=1");
             
             try {
-                const res = await fetch(API_URL);
-                if (!res.ok) throw new Error("APIサーバーの応答がありません");
-                const data = await res.json();
+                const res = await fetch(PROXY + TARGET);
+                const json = await res.json();
+                const data = JSON.parse(json.contents);
                 
                 if (data.length === 0 || (data[0].tsunami && data[0].tsunami.cancelled)) {
                     content.innerHTML = "現在、発表されている津波情報はありません。";
@@ -36,7 +38,6 @@
 
                 const t = data[0].tsunami;
                 const time = new Date(data[0].time).toLocaleString("ja-JP");
-                
                 const grades = { "津波警報": [], "津波注意報": [], "津波予報(若干の海面変動)": [] };
                 t.areas.forEach(a => { if (grades[a.grade]) grades[a.grade].push(a.name); });
 
@@ -51,13 +52,9 @@
                     <button onclick="copyText()">📋 内容をコピー</button>
                 `;
             } catch(e) {
-                content.innerHTML = `<p>データ取得エラーが発生しました。</p>
-                                     <p>APIの死活状況を確認してください: <br>
-                                     <a href="https://api.p2pquake.net/v2/history?codes=552&limit=1" target="_blank">P2P APIを確認</a></p>`;
-                console.error(e);
+                content.innerHTML = "データ取得エラーです。ネットワーク環境や一時的なAPI過負荷の可能性があります。";
             }
         }
-
         function copyText() {
             const text = document.getElementById("content").innerText.replace("📋 内容をコピー", "");
             navigator.clipboard.writeText(text);
