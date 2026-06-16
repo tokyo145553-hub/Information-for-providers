@@ -63,7 +63,7 @@ async function loadEEW() {
             const magRaw = raw.magunitude ?? raw.Magunitude;
             const mag = (typeof magRaw === 'number') ? magRaw.toFixed(1) : (magRaw ?? "-");
 
-            text = `【${type}】\n# 第${id}報${isFinal ? "（最終報）" : ""}\n\n震源地 ${raw.region_name ?? raw.Hypocenter ?? "-"}\n推定最大震度 ${raw.calcintensity ?? raw.MaxIntensity ?? "-"}\n地震の規模 M${mag}\n震源の深さ ${raw.depth ?? raw.Depth ?? "-"}km\n\n${raw.origin_time ?? raw.OriginTime ?? "-"}発生\n\n出典:WolfxAPI`;
+            text = `【${type}】\n# 第${id}報${isFinal ? "（最終報）" : ""}\n\n震源地　${raw.region_name ?? raw.Hypocenter ?? "-"}\n推定最大震度　${raw.calcintensity ?? raw.MaxIntensity ?? "-"}\n地震の規模　M${mag}\n震源の深さ　${raw.depth ?? raw.Depth ?? "-"}km\n\n${raw.origin_time ?? raw.OriginTime ?? "-"}発生\n\n出典:WolfxAPI`;
             
             // スタイル適用
             if (isWarning) {
