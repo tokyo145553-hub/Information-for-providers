@@ -54,6 +54,11 @@ button:hover{
     opacity:0.85;
 }
 
+.copyBtn{
+    padding:6px 14px;
+    font-size:14px;
+}
+
 #status{
     text-align:center;
     margin-bottom:10px;
@@ -61,7 +66,17 @@ button:hover{
     font-size:14px;
 }
 
-#result{
+.typhoon-item{
+    margin-bottom:20px;
+}
+
+.copy-wrap{
+    display:flex;
+    justify-content:flex-end;
+    margin-bottom:6px;
+}
+
+.result{
     white-space:pre-line;
     background:white;
     border:1px solid #ccc;
@@ -82,7 +97,6 @@ button:hover{
 
 <div class="buttons">
     <button onclick="getTyphoonInfo()">🔄 更新</button>
-    <button onclick="copyInfo()">📋 コピー</button>
 </div>
 
 <div id="status"></div>
@@ -122,31 +136,48 @@ async function getTyphoonInfo() {
         const entries =
             [...feedXml.getElementsByTagName("entry")];
 
-        let targetEntry = null;
+        const typhoonEntries = [];
+        const seenLinks = new Set();
 
-        targetEntry = entries.find(entry => {
+        // 第1パス: 実況
+        for (const entry of entries) {
+            if (typhoonEntries.length >= 3) break;
             const title =
                 entry.getElementsByTagName("title")[0]?.textContent || "";
-
-            return title.includes("台風") &&
-                   title.includes("実況");
-        });
-
-        if (!targetEntry) {
-            targetEntry = entries.find(entry => {
-                const title =
-                    entry.getElementsByTagName("title")[0]?.textContent || "";
-
-                return title.includes("台風") &&
-                       title.includes("予報");
-            });
+            const link =
+                entry.getElementsByTagName("link")[0]?.getAttribute("href");
+            if (title.includes("台風") &&
+                title.includes("実況") &&
+                link &&
+                !seenLinks.has(link)) {
+                seenLinks.add(link);
+                typhoonEntries.push(entry);
+            }
         }
 
-        if (!targetEntry) {
+        // 第2パス: 予報
+        if (typhoonEntries.length < 3) {
+            for (const entry of entries) {
+                if (typhoonEntries.length >= 3) break;
+                const title =
+                    entry.getElementsByTagName("title")[0]?.textContent || "";
+                const link =
+                    entry.getElementsByTagName("link")[0]?.getAttribute("href");
+                if (title.includes("台風") &&
+                    title.includes("予報") &&
+                    link &&
+                    !seenLinks.has(link)) {
+                    seenLinks.add(link);
+                    typhoonEntries.push(entry);
+                }
+            }
+        }
 
-            result.textContent =
-`【台風情報】
-現在、台風情報はありません`;
+        if (typhoonEntries.length === 0) {
+
+            result.innerHTML =
+                `<div class="result">【台風情報】
+現在、台風情報はありません</div>`;
 
             status.textContent =
                 "最終更新: " +
@@ -155,150 +186,202 @@ async function getTyphoonInfo() {
             return;
         }
 
-        const link =
-            targetEntry
-            .getElementsByTagName("link")[0]
-            ?.getAttribute("href");
+        const details =
+            await Promise.all(
+                typhoonEntries.map(async entry => {
 
-        const detailRes =
-            await fetch(link);
+                    const link =
+                        entry
+                        .getElementsByTagName("link")[0]
+                        .getAttribute("href");
 
-        const detailText =
-            await detailRes.text();
+                    const detailRes =
+                        await fetch(link);
 
-        const detailXml =
-            parser.parseFromString(detailText, "text/xml");
+                    const detailText =
+                        await detailRes.text();
 
-        let number = "";
-        let name = "不明";
-        let size = "--";
-        let intensity = "--";
-        let pressure = "不明";
-        let wind = "―";
-        let gust = "―";
-        let direction = "不明";
-        let speedText = "不明";
-        let area = "不明";
+                    const detailXml =
+                        parser.parseFromString(detailText, "text/xml");
 
-        const numberNode =
-            detailXml.querySelector("Number");
+                    let number = "";
+                    let name = "不明";
+                    let size = "--";
+                    let intensity = "--";
+                    let pressure = "不明";
+                    let wind = "―";
+                    let gust = "―";
+                    let direction = "不明";
+                    let speedText = "不明";
+                    let area = "不明";
 
-        if (numberNode) {
-            const raw = numberNode.textContent;
-            number = parseInt(raw.slice(-2), 10);
-        }
+                    const numberNode =
+                        detailXml.querySelector("Number");
 
-        const nameNode =
-            detailXml.querySelector("Name");
+                    if (numberNode) {
+                        const raw = numberNode.textContent;
+                        number = parseInt(raw.slice(-2), 10);
+                    }
 
-        if (nameNode) {
-            name = nameNode.textContent;
-        }
+                    const nameNode =
+                        detailXml.querySelector("Name");
 
-        const info =
-            detailXml.querySelector("MeteorologicalInfo");
+                    if (nameNode) {
+                        name = nameNode.textContent;
+                    }
 
-        if (info) {
+                    const info =
+                        detailXml.querySelector("MeteorologicalInfo");
 
-            const areaClass =
-                info.querySelector("AreaClass");
+                    if (info) {
 
-            if (areaClass?.textContent) {
-                size = areaClass.textContent;
-            }
+                        const areaClass =
+                            info.querySelector("AreaClass");
 
-            const intensityClass =
-                info.querySelector("IntensityClass");
+                        if (areaClass?.textContent) {
+                            size = areaClass.textContent;
+                        }
 
-            if (intensityClass?.textContent) {
-                intensity = intensityClass.textContent;
-            }
+                        const intensityClass =
+                            info.querySelector("IntensityClass");
 
-            const location =
-                info.querySelector("CenterPart Location");
+                        if (intensityClass?.textContent) {
+                            intensity = intensityClass.textContent;
+                        }
 
-            if (location?.textContent) {
-                area = location.textContent;
-            }
+                        const location =
+                            info.querySelector("CenterPart Location");
 
-            const pressureNode =
-                info.querySelector("Pressure");
+                        if (location?.textContent) {
+                            area = location.textContent;
+                        }
 
-            if (pressureNode?.textContent) {
-                pressure = pressureNode.textContent;
-            }
+                        const pressureNode =
+                            info.querySelector("Pressure");
 
-            const directionNode =
-                info.querySelector("Direction");
+                        if (pressureNode?.textContent) {
+                            pressure = pressureNode.textContent;
+                        }
 
-            if (directionNode?.textContent) {
-                direction = directionNode.textContent;
-            }
+                        const directionNode =
+                            info.querySelector("Direction");
 
-            const speedNode =
-                [...info.querySelectorAll("Speed")]
-                .find(x =>
-                    x.getAttribute("unit") === "km/h"
-                );
+                        if (directionNode?.textContent) {
+                            direction = directionNode.textContent;
+                        }
 
-            if (speedNode) {
+                        const speedNode =
+                            [...info.querySelectorAll("Speed")]
+                            .find(x =>
+                                x.getAttribute("unit") === "km/h"
+                            );
 
-                const speed =
-                    speedNode.textContent;
+                        if (speedNode) {
 
-                const desc =
-                    speedNode.getAttribute("description");
+                            const speed =
+                                speedNode.textContent;
 
-                if (desc?.includes("ゆっくり")) {
-                    speedText = "ゆっくり";
-                } else if (
-                    desc?.includes("ほとんど停滞")
-                ) {
-                    speedText = "ほとんど停滞";
-                } else {
-                    speedText = speed + " km/h";
-                }
-            }
+                            const desc =
+                                speedNode.getAttribute("description");
 
-            const windNodes =
-                [...info.querySelectorAll("WindSpeed")];
+                            if (desc?.includes("ゆっくり")) {
+                                speedText = "ゆっくり";
+                            } else if (
+                                desc?.includes("ほとんど停滞")
+                            ) {
+                                speedText = "ほとんど停滞";
+                            } else {
+                                speedText = speed + " km/h";
+                            }
+                        }
 
-            windNodes.forEach(node => {
+                        const windNodes =
+                            [...info.querySelectorAll("WindSpeed")];
 
-                const unit =
-                    node.getAttribute("unit");
+                        windNodes.forEach(node => {
 
-                const type =
-                    node.getAttribute("type") || "";
+                            const unit =
+                                node.getAttribute("unit");
 
-                if (
-                    unit === "m/s" &&
-                    (!type || type.includes("最大風速"))
-                ) {
-                    wind = node.textContent;
-                }
+                            const type =
+                                node.getAttribute("type") || "";
 
-                if (
-                    unit === "m/s" &&
-                    type.includes("最大瞬間風速")
-                ) {
-                    gust = node.textContent;
-                }
-            });
-        }
+                            if (
+                                unit === "m/s" &&
+                                (!type || type.includes("最大風速"))
+                            ) {
+                                wind = node.textContent;
+                            }
 
-        result.textContent =
+                            if (
+                                unit === "m/s" &&
+                                type.includes("最大瞬間風速")
+                            ) {
+                                gust = node.textContent;
+                            }
+                        });
+                    }
+
+                    return {
+                        number,
+                        name,
+                        size,
+                        intensity,
+                        pressure,
+                        wind,
+                        gust,
+                        direction,
+                        speedText,
+                        area
+                    };
+                })
+            );
+
+        result.innerHTML =
+            details.map((t, i) => {
+
+                const text =
 `【台風情報】
-台風${number}号
-台風名　${name}
-大きさ　${size}
-強さ　${intensity}
-存在地域　${area}
-中心気圧　${pressure} hPa
-最大風速　${wind} m/s
-最大瞬間風速　${gust} m/s
-移動方向　${direction}
-移動速度　${speedText}`;
+台風${t.number}号
+台風名　${t.name}
+大きさ　${t.size}
+強さ　${t.intensity}
+存在地域　${t.area}
+中心気圧　${t.pressure} hPa
+最大風速　${t.wind} m/s
+最大瞬間風速　${t.gust} m/s
+移動方向　${t.direction}
+移動速度　${t.speedText}`;
+
+                const escaped =
+                    text.replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;");
+
+                return `
+<div class="typhoon-item">
+    <div class="copy-wrap">
+        <button class="copyBtn" onclick="copyInfo(${i})">📋 コピー</button>
+    </div>
+    <div class="result" id="typhoon-${i}">${escaped}</div>
+</div>`;
+            }).join("");
+
+        // テキストを保存
+        window.typhoonTexts =
+            details.map(t =>
+`【台風情報】
+台風${t.number}号
+台風名　${t.name}
+大きさ　${t.size}
+強さ　${t.intensity}
+存在地域　${t.area}
+中心気圧　${t.pressure} hPa
+最大風速　${t.wind} m/s
+最大瞬間風速　${t.gust} m/s
+移動方向　${t.direction}
+移動速度　${t.speedText}`
+            );
 
         status.textContent =
             "最終更新: " +
@@ -308,21 +391,21 @@ async function getTyphoonInfo() {
 
         console.error(error);
 
-        result.textContent =
-`データ取得に失敗しました
+        result.innerHTML =
+            `<div class="result">データ取得に失敗しました
 
 GitHub Pagesでは
 気象庁XMLのCORS制限により
-取得できない場合があります。`;
+取得できない場合があります。</div>`;
 
         status.textContent = "取得失敗";
     }
 }
 
-async function copyInfo() {
+async function copyInfo(index) {
 
     const text =
-        document.getElementById("result").textContent;
+        window.typhoonTexts[index];
 
     try {
 
