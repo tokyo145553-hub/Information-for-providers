@@ -4,89 +4,353 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>台風情報</title>
+
 <style>
-body{ font-family:sans-serif; max-width:900px; margin:40px auto; padding:20px; background:#f5f5f5; }
-.card{ background:white; border:1px solid #ccc; border-radius:10px; padding:20px; margin-bottom:20px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-#status{ text-align:center; margin-bottom:10px; color:green; font-size:14px; }
-.btn-row{ display:flex; justify-content:center; gap:10px; margin-bottom:20px; }
-button{ padding:10px 18px; font-size:16px; border:none; border-radius:8px; cursor:pointer; background:#0066cc; color:white; }
-button:hover{ opacity:0.85; }
-.copy-btn{ background:#28a745; margin-top:10px; }
-pre{ white-space:pre-line; margin:0; line-height:1.8; }
+body{
+    font-family:sans-serif;
+    max-width:900px;
+    margin:40px auto;
+    padding:20px;
+    background:#f5f5f5;
+}
+
+#backBtn{
+    display:inline-block;
+    margin-bottom:15px;
+    padding:10px 16px;
+    background:#0066cc;
+    color:white;
+    text-decoration:none;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:bold;
+}
+
+#backBtn:hover{
+    background:#0055aa;
+}
+
+h1{
+    text-align:center;
+    margin-top:0;
+}
+
+.buttons{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-bottom:15px;
+}
+
+button{
+    padding:10px 18px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+button:hover{
+    opacity:0.85;
+}
+
+#status{
+    text-align:center;
+    margin-bottom:10px;
+    color:green;
+    font-size:14px;
+}
+
+#result{
+    white-space:pre-line;
+    background:white;
+    border:1px solid #ccc;
+    border-radius:10px;
+    padding:20px;
+    line-height:1.8;
+    box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
 </style>
 </head>
 <body>
 
+<a href="index.html" id="backBtn">
+← トップへ戻る
+</a>
+
 <h1>台風情報</h1>
-<div class="btn-row">
-    <button onclick="getTyphoonInfo()">🔄 最新情報を更新</button>
+
+<div class="buttons">
+    <button onclick="getTyphoonInfo()">🔄 更新</button>
+    <button onclick="copyInfo()">📋 コピー</button>
 </div>
+
 <div id="status"></div>
-<div id="result-list">読み込み待機中...</div>
+
+<div id="result">読み込み待機中...</div>
 
 <script>
+
 async function getTyphoonInfo() {
-    const FEED_URL = "https://www.data.jma.go.jp/developer/xml/feed/extra.xml";
-    const container = document.getElementById("result-list");
-    const status = document.getElementById("status");
+
+    const FEED_URL =
+        "https://www.data.jma.go.jp/developer/xml/feed/extra.xml";
+
+    const result =
+        document.getElementById("result");
+
+    const status =
+        document.getElementById("status");
 
     try {
-        container.innerHTML = "取得中...";
-        const feedRes = await fetch(FEED_URL);
-        const feedText = await feedRes.text();
-        const parser = new DOMParser();
-        const feedXml = parser.parseFromString(feedText, "text/xml");
-        const entries = [...feedXml.getElementsByTagName("entry")];
 
-        // 実況と予報を合わせて最大3件取得
-        const targets = entries.filter(e => e.getElementsByTagName("title")[0].textContent.includes("台風"))
-                               .slice(0, 3);
+        result.textContent = "取得中...";
+        status.textContent = "";
 
-        if (targets.length === 0) {
-            container.innerHTML = "<div class='card'>現在、台風情報はありません。</div>";
+        const feedRes =
+            await fetch(FEED_URL);
+
+        const feedText =
+            await feedRes.text();
+
+        const parser =
+            new DOMParser();
+
+        const feedXml =
+            parser.parseFromString(feedText, "text/xml");
+
+        const entries =
+            [...feedXml.getElementsByTagName("entry")];
+
+        let targetEntry = null;
+
+        targetEntry = entries.find(entry => {
+            const title =
+                entry.getElementsByTagName("title")[0]?.textContent || "";
+
+            return title.includes("台風") &&
+                   title.includes("実況");
+        });
+
+        if (!targetEntry) {
+            targetEntry = entries.find(entry => {
+                const title =
+                    entry.getElementsByTagName("title")[0]?.textContent || "";
+
+                return title.includes("台風") &&
+                       title.includes("予報");
+            });
+        }
+
+        if (!targetEntry) {
+
+            result.textContent =
+`【台風情報】
+現在、台風情報はありません`;
+
+            status.textContent =
+                "最終更新: " +
+                new Date().toLocaleString("ja-JP");
+
             return;
         }
 
-        container.innerHTML = "";
-        for (const entry of targets) {
-            const link = entry.getElementsByTagName("link")[0].getAttribute("href");
-            const detailRes = await fetch(link);
-            const detailXml = parser.parseFromString(await detailRes.text(), "text/xml");
-            
-            // データ解析（元のロジックを流用）
-            const info = detailXml.querySelector("MeteorologicalInfo");
-            const number = parseInt(detailXml.querySelector("Number")?.textContent.slice(-2), 10) || "不明";
-            const name = detailXml.querySelector("Name")?.textContent || "不明";
-            const area = info?.querySelector("CenterPart Location")?.textContent || "不明";
-            const pressure = info?.querySelector("Pressure")?.textContent || "不明";
-            
-            const typhoonText = `【台風情報】
+        const link =
+            targetEntry
+            .getElementsByTagName("link")[0]
+            ?.getAttribute("href");
+
+        const detailRes =
+            await fetch(link);
+
+        const detailText =
+            await detailRes.text();
+
+        const detailXml =
+            parser.parseFromString(detailText, "text/xml");
+
+        let number = "";
+        let name = "不明";
+        let size = "--";
+        let intensity = "--";
+        let pressure = "不明";
+        let wind = "―";
+        let gust = "―";
+        let direction = "不明";
+        let speedText = "不明";
+        let area = "不明";
+
+        const numberNode =
+            detailXml.querySelector("Number");
+
+        if (numberNode) {
+            const raw = numberNode.textContent;
+            number = parseInt(raw.slice(-2), 10);
+        }
+
+        const nameNode =
+            detailXml.querySelector("Name");
+
+        if (nameNode) {
+            name = nameNode.textContent;
+        }
+
+        const info =
+            detailXml.querySelector("MeteorologicalInfo");
+
+        if (info) {
+
+            const areaClass =
+                info.querySelector("AreaClass");
+
+            if (areaClass?.textContent) {
+                size = areaClass.textContent;
+            }
+
+            const intensityClass =
+                info.querySelector("IntensityClass");
+
+            if (intensityClass?.textContent) {
+                intensity = intensityClass.textContent;
+            }
+
+            const location =
+                info.querySelector("CenterPart Location");
+
+            if (location?.textContent) {
+                area = location.textContent;
+            }
+
+            const pressureNode =
+                info.querySelector("Pressure");
+
+            if (pressureNode?.textContent) {
+                pressure = pressureNode.textContent;
+            }
+
+            const directionNode =
+                info.querySelector("Direction");
+
+            if (directionNode?.textContent) {
+                direction = directionNode.textContent;
+            }
+
+            const speedNode =
+                [...info.querySelectorAll("Speed")]
+                .find(x =>
+                    x.getAttribute("unit") === "km/h"
+                );
+
+            if (speedNode) {
+
+                const speed =
+                    speedNode.textContent;
+
+                const desc =
+                    speedNode.getAttribute("description");
+
+                if (desc?.includes("ゆっくり")) {
+                    speedText = "ゆっくり";
+                } else if (
+                    desc?.includes("ほとんど停滞")
+                ) {
+                    speedText = "ほとんど停滞";
+                } else {
+                    speedText = speed + " km/h";
+                }
+            }
+
+            const windNodes =
+                [...info.querySelectorAll("WindSpeed")];
+
+            windNodes.forEach(node => {
+
+                const unit =
+                    node.getAttribute("unit");
+
+                const type =
+                    node.getAttribute("type") || "";
+
+                if (
+                    unit === "m/s" &&
+                    (!type || type.includes("最大風速"))
+                ) {
+                    wind = node.textContent;
+                }
+
+                if (
+                    unit === "m/s" &&
+                    type.includes("最大瞬間風速")
+                ) {
+                    gust = node.textContent;
+                }
+            });
+        }
+
+        result.textContent =
+`【台風情報】
 台風${number}号
 台風名　${name}
+大きさ　${size}
+強さ　${intensity}
 存在地域　${area}
-中心気圧　${pressure} hPa`;
+中心気圧　${pressure} hPa
+最大風速　${wind} m/s
+最大瞬間風速　${gust} m/s
+移動方向　${direction}
+移動速度　${speedText}`;
 
-            const card = document.createElement("div");
-            card.className = "card";
-            card.innerHTML = `<pre>${typhoonText}</pre>
-                              <button class="copy-btn" onclick="copyInfo(this)">📋 この件をコピー</button>`;
-            container.appendChild(card);
-        }
-        status.textContent = "最終更新: " + new Date().toLocaleString("ja-JP");
-    } catch(e) {
-        container.textContent = "データ取得に失敗しました。";
+        status.textContent =
+            "最終更新: " +
+            new Date().toLocaleString("ja-JP");
+
+    } catch(error) {
+
+        console.error(error);
+
+        result.textContent =
+`データ取得に失敗しました
+
+GitHub Pagesでは
+気象庁XMLのCORS制限により
+取得できない場合があります。`;
+
+        status.textContent = "取得失敗";
     }
 }
 
-async function copyInfo(btn) {
-    const text = btn.previousElementSibling.textContent;
-    await navigator.clipboard.writeText(text);
-    const originalText = btn.textContent;
-    btn.textContent = "✅ コピーしました";
-    setTimeout(() => btn.textContent = originalText, 2000);
+async function copyInfo() {
+
+    const text =
+        document.getElementById("result").textContent;
+
+    try {
+
+        await navigator.clipboard.writeText(text);
+
+        const status =
+            document.getElementById("status");
+
+        status.textContent =
+            "✅ コピーしました";
+
+        setTimeout(() => {
+
+            status.textContent =
+                "最終更新: " +
+                new Date().toLocaleString("ja-JP");
+
+        }, 2000);
+
+    } catch {
+
+        alert("コピーに失敗しました");
+    }
 }
 
 getTyphoonInfo();
+
 </script>
+
 </body>
 </html>
