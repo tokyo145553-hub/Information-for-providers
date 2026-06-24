@@ -195,7 +195,7 @@ header {
 
 <header>
     <div class="header-left">
-        <img src="images/teb.png.JPG" class="logo">
+        <img src="images/teb.png.JPG" class="logo" id="secretLogo">
         <div class="header-title">
             <h1>提供者向け情報サイト</h1>
             <p>TokyoEastBranch Provider Portal</p>
@@ -349,6 +349,35 @@ setInterval(()=>{
     document.getElementById("clock").textContent =
     new Date().toLocaleTimeString("ja-JP");
 },1000);
+
+let logoClickCount = 0;
+let logoTimer;
+
+document.getElementById("secretLogo").addEventListener("click", () => {
+
+    logoClickCount++;
+
+    if(logoClickCount === 3){
+        alert("あと2回...");
+    }
+
+    if(logoClickCount >= 5){
+
+        alert("TokyoEastBranch Xへ移動します");
+
+        window.location.href =
+            "https://x.com/tokyoeast004021";
+
+        logoClickCount = 0;
+    }
+
+    clearTimeout(logoTimer);
+
+    logoTimer = setTimeout(()=>{
+        logoClickCount = 0;
+    },3000);
+
+});
 </script>
 
 </body>
