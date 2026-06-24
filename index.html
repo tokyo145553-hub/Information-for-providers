@@ -351,35 +351,54 @@ function toggleMenu(){
 
 function toggleAccordion(btn){
     const c = btn.nextElementSibling;
-    c.style.display = (c.style.display==="block")?"none":"block";
+    c.style.display = (c.style.display === "block") ? "none" : "block";
 }
 
-setInterval(()=>{
+setInterval(() => {
     document.getElementById("clock").textContent =
-    new Date().toLocaleTimeString("ja-JP");
-},1000);
+        new Date().toLocaleTimeString("ja-JP");
+}, 1000);
 
+// ロゴクリックでXへ移動
 let logoClickCount = 0;
 let logoTimer;
 
 document.getElementById("secretLogo").addEventListener("click", () => {
 
-    ...
+    logoClickCount++;
 
-    logoTimer = setTimeout(()=>{
+    if (logoClickCount >= 1) {
+
+        alert("TokyoEastBranch Xへ移動します");
+
+        window.location.href =
+            "https://x.com/tokyoeast004021";
+
         logoClickCount = 0;
-    },3000);
+    }
 
-}); // ← これが必要
+    clearTimeout(logoTimer);
 
+    logoTimer = setTimeout(() => {
+        logoClickCount = 0;
+    }, 3000);
+
+});
+
+// 累計利用数取得
 fetch("https://script.google.com/macros/s/AKfycbxEEox1elaOEz5ZF16mlP3aJsxx7yH5bV0BUanrj7aBFLQ_xj94IV-nFA5HFkhgBsAS/exec")
-.then(response => response.text())
+.then(response => {
+    if (!response.ok) {
+        throw new Error("HTTP Error");
+    }
+    return response.text();
+})
 .then(count => {
     document.getElementById("visitorCount").textContent =
         Number(count).toLocaleString() + " 回";
 })
 .catch(error => {
-    console.error(error);
+    console.error("取得失敗:", error);
     document.getElementById("visitorCount").textContent =
         "取得失敗";
 });
