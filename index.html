@@ -364,31 +364,22 @@ let logoTimer;
 
 document.getElementById("secretLogo").addEventListener("click", () => {
 
-    logoClickCount++;
-    if(logoClickCount >= 1){
-
-        alert("TokyoEastBranch Xへ移動します");
-
-        window.location.href =
-            "https://x.com/tokyoeast004021";
-
-        logoClickCount = 0;
-    }
-
-    clearTimeout(logoTimer);
+    ...
 
     logoTimer = setTimeout(()=>{
         logoClickCount = 0;
     },3000);
 
-});
-    fetch("https://script.google.com/macros/s/AKfycbxEEox1elaOEz5ZF16mlP3aJsxx7yH5bV0BUanrj7aBFLQ_xj94IV-nFA5HFkhgBsAS/exec")
+}); // ← これが必要
+
+fetch("https://script.google.com/macros/s/AKfycbxEEox1elaOEz5ZF16mlP3aJsxx7yH5bV0BUanrj7aBFLQ_xj94IV-nFA5HFkhgBsAS/exec")
 .then(response => response.text())
 .then(count => {
     document.getElementById("visitorCount").textContent =
         Number(count).toLocaleString() + " 回";
 })
-.catch(() => {
+.catch(error => {
+    console.error(error);
     document.getElementById("visitorCount").textContent =
         "取得失敗";
 });
