@@ -352,5 +352,143 @@ async function getTyphoonInfo() {
 
                             if (
                                 unit === "m/s" &&
-                                (!type || type.*
-
+                                (!type || type.includes("最大風速"))
+                            ) {
+                                wind = node.textContent;
+                            }
+
+                            if (
+                                unit === "m/s" &&
+                                type.includes("最大瞬間風速")
+                            ) {
+                                gust = node.textContent;
+                            }
+                        });
+                    }
+
+                    return {
+                        number,
+                        name,
+                        size,
+                        intensity,
+                        pressure,
+                        wind,
+                        gust,
+                        direction,
+                        speedText,
+                        area
+                    };
+                })
+            );
+
+        result.innerHTML =
+            details.map((t, i) => {
+
+                const text =
+`【台風情報】
+台風${t.number}号
+台風名　${t.name}
+大きさ　${t.size}
+強さ　${t.intensity}
+存在地域　${t.area}
+中心気圧　${t.pressure} hPa
+最大風速　${t.wind} m/s
+最大瞬間風速　${t.gust} m/s
+移動方向　${t.direction}
+移動速度　${t.speedText}`;
+
+                const escaped =
+                    text.replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;");
+
+                return `
+<div class="typhoon-item">
+    <div class="copy-wrap">
+        <button class="copyBtn" onclick="copyInfo(${i})">📋 コピー</button>
+    </div>
+    <div class="result" id="typhoon-${i}">${escaped}</div>
+</div>`;
+            }).join("");
+
+        // テキストを保存
+        window.typhoonTexts =
+            details.map(t =>
+`【台風情報】
+台風${t.number}号
+台風名　${t.name}
+大きさ　${t.size}
+強さ　${t.intensity}
+存在地域　${t.area}
+中心気圧　${t.pressure} hPa
+最大風速　${t.wind} m/s
+最大瞬間風速　${t.gust} m/s
+移動方向　${t.direction}
+移動速度　${t.speedText}`
+            );
+
+        status.textContent =
+            "最終更新: " +
+            new Date().toLocaleString("ja-JP");
+
+    } catch(error) {
+
+        console.error(error);
+
+        result.innerHTML =
+            `<div class="result">データ取得に失敗しました
+
+GitHub Pagesでは
+気象庁XMLのCORS制限により
+取得できない場合があります。</div>`;
+
+        status.textContent = "取得失敗";
+    }
+}
+
+async function copyInfo(index) {
+
+    const text =
+        window.typhoonTexts[index];
+
+    try {
+
+        await navigator.clipboard.writeText(text);
+
+        const status =
+            document.getElementById("status");
+
+        status.textContent =
+            "✅ コピーしました";
+
+        setTimeout(() => {
+
+            status.textContent =
+                "最終更新: " +
+                new Date().toLocaleString("ja-JP");
+
+        }, 2000);
+
+    } catch {
+
+        alert("コピーに失敗しました");
+    }
+}
+
+// index.htmlのテーマ設定と同期
+(function(){
+    const root = document.documentElement;
+    const saved = localStorage.getItem('siteTheme');
+    if (saved === 'dark' || saved === 'light') {
+        root.setAttribute('data-theme', saved);
+    } else {
+        root.removeAttribute('data-theme');
+    }
+})();
+
+getTyphoonInfo();
+
+</script>
+
+</body>
+</html>
