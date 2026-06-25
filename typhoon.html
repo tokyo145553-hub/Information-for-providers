@@ -6,85 +6,129 @@
 <title>台風情報</title>
 
 <style>
-body{
-    font-family:sans-serif;
-    max-width:900px;
-    margin:40px auto;
-    padding:20px;
-    background:#f5f5f5;
-}
+    :root {
+        --bg-color: #0b0f16;
+        --card-bg: #0f1720;
+        --text-color: #e6eef8;
+        --button-bg: #003b80;
+        --button-hover: #005acc;
+        --border-color: #333;
+        --status-color: #66d18e;
+        --shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
 
-#backBtn{
-    display:inline-block;
-    margin-bottom:15px;
-    padding:10px 16px;
-    background:#0066cc;
-    color:white;
-    text-decoration:none;
-    border-radius:8px;
-    font-size:14px;
-    font-weight:bold;
-}
+    :root[data-theme="light"] {
+        --bg-color: #f5f5f5;
+        --card-bg: #ffffff;
+        --text-color: #333;
+        --button-bg: #0066cc;
+        --button-hover: #0055aa;
+        --border-color: #ccc;
+        --status-color: #28a745;
+        --shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
 
-#backBtn:hover{
-    background:#0055aa;
-}
+    @media (prefers-color-scheme: light) {
+        :root:not([data-theme="dark"]) {
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --button-bg: #0066cc;
+            --button-hover: #0055aa;
+            --border-color: #ccc;
+            --status-color: #28a745;
+            --shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    }
 
-h1{
-    text-align:center;
-    margin-top:0;
-}
+    * { transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease; }
 
-.buttons{
-    display:flex;
-    justify-content:center;
-    gap:10px;
-    margin-bottom:15px;
-}
+    body {
+        font-family: sans-serif;
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 20px;
+        background: var(--bg-color);
+        color: var(--text-color);
+    }
 
-button{
-    padding:10px 18px;
-    font-size:16px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-}
+    #backBtn {
+        display: inline-block;
+        margin-bottom: 15px;
+        padding: 10px 16px;
+        background: var(--button-bg);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: bold;
+        transition: background 0.3s;
+    }
 
-button:hover{
-    opacity:0.85;
-}
+    #backBtn:hover {
+        background: var(--button-hover);
+    }
 
-.copyBtn{
-    padding:6px 14px;
-    font-size:14px;
-}
+    h1 {
+        text-align: center;
+        margin-top: 0;
+        color: var(--text-color);
+    }
 
-#status{
-    text-align:center;
-    margin-bottom:10px;
-    color:green;
-    font-size:14px;
-}
+    .buttons {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
 
-.typhoon-item{
-    margin-bottom:20px;
-}
+    button {
+        padding: 10px 18px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: var(--button-bg);
+        color: white;
+        transition: background 0.3s;
+    }
 
-.copy-wrap{
-    display:flex;
-    justify-content:flex-end;
-    margin-bottom:6px;
-}
+    button:hover {
+        background: var(--button-hover);
+    }
 
-.result{
-    white-space:pre-line;
-    background:white;
-    border:1px solid #ccc;
-    border-radius:10px;
-    padding:20px;
-    line-height:1.8;
-    box-shadow:0 2px 5px rgba(0,0,0,0.1);
-}
+    .copyBtn {
+        padding: 6px 14px;
+        font-size: 14px;
+    }
+
+    #status {
+        text-align: center;
+        margin-bottom: 10px;
+        color: var(--status-color);
+        font-size: 14px;
+    }
+
+    .typhoon-item {
+        margin-bottom: 20px;
+    }
+
+    .copy-wrap {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 6px;
+    }
+
+    .result {
+        white-space: pre-line;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 20px;
+        line-height: 1.8;
+        box-shadow: var(--shadow);
+        color: var(--text-color);
+    }
 </style>
 </head>
 <body>
@@ -308,132 +352,5 @@ async function getTyphoonInfo() {
 
                             if (
                                 unit === "m/s" &&
-                                (!type || type.includes("最大風速"))
-                            ) {
-                                wind = node.textContent;
-                            }
-
-                            if (
-                                unit === "m/s" &&
-                                type.includes("最大瞬間風速")
-                            ) {
-                                gust = node.textContent;
-                            }
-                        });
-                    }
-
-                    return {
-                        number,
-                        name,
-                        size,
-                        intensity,
-                        pressure,
-                        wind,
-                        gust,
-                        direction,
-                        speedText,
-                        area
-                    };
-                })
-            );
-
-        result.innerHTML =
-            details.map((t, i) => {
-
-                const text =
-`【台風情報】
-台風${t.number}号
-台風名　${t.name}
-大きさ　${t.size}
-強さ　${t.intensity}
-存在地域　${t.area}
-中心気圧　${t.pressure} hPa
-最大風速　${t.wind} m/s
-最大瞬間風速　${t.gust} m/s
-移動方向　${t.direction}
-移動速度　${t.speedText}`;
-
-                const escaped =
-                    text.replace(/&/g, "&amp;")
-                        .replace(/</g, "&lt;")
-                        .replace(/>/g, "&gt;");
-
-                return `
-<div class="typhoon-item">
-    <div class="copy-wrap">
-        <button class="copyBtn" onclick="copyInfo(${i})">📋 コピー</button>
-    </div>
-    <div class="result" id="typhoon-${i}">${escaped}</div>
-</div>`;
-            }).join("");
-
-        // テキストを保存
-        window.typhoonTexts =
-            details.map(t =>
-`【台風情報】
-台風${t.number}号
-台風名　${t.name}
-大きさ　${t.size}
-強さ　${t.intensity}
-存在地域　${t.area}
-中心気圧　${t.pressure} hPa
-最大風速　${t.wind} m/s
-最大瞬間風速　${t.gust} m/s
-移動方向　${t.direction}
-移動速度　${t.speedText}`
-            );
-
-        status.textContent =
-            "最終更新: " +
-            new Date().toLocaleString("ja-JP");
-
-    } catch(error) {
-
-        console.error(error);
-
-        result.innerHTML =
-            `<div class="result">データ取得に失敗しました
-
-GitHub Pagesでは
-気象庁XMLのCORS制限により
-取得できない場合があります。</div>`;
-
-        status.textContent = "取得失敗";
-    }
-}
-
-async function copyInfo(index) {
-
-    const text =
-        window.typhoonTexts[index];
-
-    try {
-
-        await navigator.clipboard.writeText(text);
-
-        const status =
-            document.getElementById("status");
-
-        status.textContent =
-            "✅ コピーしました";
-
-        setTimeout(() => {
-
-            status.textContent =
-                "最終更新: " +
-                new Date().toLocaleString("ja-JP");
-
-        }, 2000);
-
-    } catch {
-
-        alert("コピーに失敗しました");
-    }
-}
-
-getTyphoonInfo();
-
-</script>
-
-</body>
-</html>
+                                (!type || type.*
+
