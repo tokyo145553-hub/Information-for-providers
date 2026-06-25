@@ -67,12 +67,13 @@ button:hover{
 }
 
 .typhoon-item{
-    margin-bottom:20px;
+    margin-bottom:30px;
 }
 
 .copy-wrap{
     display:flex;
     justify-content:flex-end;
+    gap:8px;
     margin-bottom:6px;
 }
 
@@ -84,6 +85,41 @@ button:hover{
     padding:20px;
     line-height:1.8;
     box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+.image-container{
+    background:white;
+    border:1px solid #ccc;
+    border-radius:10px;
+    padding:20px;
+    margin-bottom:15px;
+    box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+.image-container canvas{
+    max-width:100%;
+    height:auto;
+    display:block;
+    margin-bottom:10px;
+}
+
+.image-buttons{
+    display:flex;
+    gap:8px;
+}
+
+.downloadBtn, .shareBtn{
+    padding:8px 14px;
+    font-size:14px;
+    background:#28a745;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.downloadBtn:hover, .shareBtn:hover{
+    opacity:0.85;
 }
 </style>
 </head>
@@ -214,6 +250,8 @@ async function getTyphoonInfo() {
                     let direction = "不明";
                     let speedText = "不明";
                     let area = "不明";
+                    let latitude = 0;
+                    let longitude = 0;
 
                     const numberNode =
                         detailXml.querySelector("Number");
@@ -320,6 +358,22 @@ async function getTyphoonInfo() {
                                 gust = node.textContent;
                             }
                         });
+
+                        // 緯度経度を取得
+                        const centerPart =
+                            info.querySelector("CenterPart");
+                        if (centerPart) {
+                            const latNode =
+                                centerPart.querySelector("Latitude");
+                            const lonNode =
+                                centerPart.querySelector("Longitude");
+                            if (latNode?.textContent) {
+                                latitude = parseFloat(latNode.textContent);
+                            }
+                            if (lonNode?.textContent) {
+                                longitude = parseFloat(lonNode.textContent);
+                            }
+                        }
                     }
 
                     return {
@@ -332,7 +386,9 @@ async function getTyphoonInfo() {
                         gust,
                         direction,
                         speedText,
-                        area
+                        area,
+                        latitude,
+                        longitude
                     };
                 })
             );
@@ -360,6 +416,13 @@ async function getTyphoonInfo() {
 
                 return `
 <div class="typhoon-item">
+    <div class="image-container">
+        <canvas id="typhoon-map-${i}"></canvas>
+        <div class="image-buttons">
+            <button class="downloadBtn" onclick="downloadImage(${i}, '台風${t.number}号_${t.name}')">⬇️ 画像ダウンロード</button>
+            <button class="shareBtn" onclick="shareImage(${i})">📤 シェア</button>
+        </div>
+    </div>
     <div class="copy-wrap">
         <button class="copyBtn" onclick="copyInfo(${i})">📋 コピー</button>
     </div>
@@ -383,6 +446,15 @@ async function getTyphoonInfo() {
 移動速度　${t.speedText}`
             );
 
+        window.typhoonData = details;
+
+        // 画像を生成
+        details.forEach((t, i) => {
+            setTimeout(() => {
+                drawTyphoonMap(i, t);
+            }, 100);
+        });
+
         status.textContent =
             "最終更新: " +
             new Date().toLocaleString("ja-JP");
@@ -400,6 +472,169 @@ GitHub Pagesでは
 
         status.textContent = "取得失敗";
     }
+}
+
+function drawTyphoonMap(index, typhoonData) {
+    const canvas = document.getElementById(`typhoon-map-${index}`);
+    if (!canvas) return;
+
+    canvas.width = 600;
+    canvas.height = 500;
+
+    const ctx = canvas.getContext('2d');
+
+    // 背景
+    ctx.fillStyle = '#e6f2ff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // グリッド
+    ctx.strokeStyle = '#cccccc';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 10; i++) {
+        ctx.beginPath();
+        ctx.moveTo((canvas.width / 10) * i, 0);
+        ctx.lineTo((canvas.width / 10) * i, canvas.height);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0, (canvas.height / 10) * i);
+        ctx.lineTo(canvas.width, (canvas.height / 10) * i);
+        ctx.stroke();
+    }
+
+    // 日本列島の簡易描画
+    drawJapanOutline(ctx, canvas);
+
+    // 台風の中心位置を計算（緯度経度をキャンバス座標に変換）
+    const centerX = convertLonToX(typhoonData.longitude, canvas.width);
+    const centerY = convertLatToY(typhoonData.latitude, canvas.height);
+
+    // 台風の風域を円で表現
+    ctx.fillStyle = 'rgba(255, 165, 0, 0.2)';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 60, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255, 165, 0, 0.5)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // 台風の中心
+    ctx.fillStyle = '#ff4444';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 中心にバツ印
+    ctx.strokeStyle = '#ff4444';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(centerX - 10, centerY - 10);
+    ctx.lineTo(centerX + 10, centerY + 10);
+    ctx.moveTo(centerX + 10, centerY - 10);
+    ctx.lineTo(centerX - 10, centerY + 10);
+    ctx.stroke();
+
+    // 情報を表示
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`台風${typhoonData.number}号 ${typhoonData.name}`, 20, 30);
+
+    ctx.font = '14px sans-serif';
+    ctx.fillText(`位置: 北緯${Math.abs(typhoonData.latitude).toFixed(2)}°　東経${typhoonData.longitude.toFixed(2)}°`, 20, 55);
+    ctx.fillText(`気圧: ${typhoonData.pressure} hPa　最大風速: ${typhoonData.wind} m/s`, 20, 75);
+    ctx.fillText(`移動: ${typhoonData.direction} ${typhoonData.speedText}`, 20, 95);
+
+    // 凡例
+    ctx.fillStyle = 'white';
+    ctx.fillRect(canvas.width - 180, canvas.height - 80, 170, 70);
+    ctx.strokeStyle = '#999';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(canvas.width - 180, canvas.height - 80, 170, 70);
+
+    ctx.fillStyle = '#ff4444';
+    ctx.beginPath();
+    ctx.arc(canvas.width - 160, canvas.height - 60, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#000000';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('台風中心', canvas.width - 150, canvas.height - 55);
+
+    ctx.fillStyle = 'rgba(255, 165, 0, 0.3)';
+    ctx.fillRect(canvas.width - 160, canvas.height - 35, 15, 15);
+    ctx.fillStyle = '#000000';
+    ctx.fillText('風域', canvas.width - 140, canvas.height - 22);
+}
+
+function drawJapanOutline(ctx, canvas) {
+    // 日本列島の簡易的なアウトラインを描画
+    ctx.fillStyle = '#90EE90';
+    ctx.strokeStyle = '#333333';
+    ctx.lineWidth = 2;
+
+    // 本州
+    const honshu = [
+        {lat: 45.5, lon: 142},
+        {lat: 43, lon: 145},
+        {lat: 40, lon: 142},
+        {lat: 38, lon: 140},
+        {lat: 37, lon: 138},
+        {lat: 38, lon: 135},
+        {lat: 40, lon: 132},
+        {lat: 42, lon: 130},
+        {lat: 44, lon: 131},
+        {lat: 45, lon: 137}
+    ];
+
+    drawLandArea(ctx, canvas, honshu);
+
+    // 北海道
+    const hokkaido = [
+        {lat: 45.5, lon: 140},
+        {lat: 45.5, lon: 145},
+        {lat: 43.5, lon: 145.5},
+        {lat: 43, lon: 140.5}
+    ];
+    drawLandArea(ctx, canvas, hokkaido);
+
+    // 九州
+    const kyushu = [
+        {lat: 37, lon: 132},
+        {lat: 36, lon: 132},
+        {lat: 35, lon: 135},
+        {lat: 36, lon: 135}
+    ];
+    drawLandArea(ctx, canvas, kyushu);
+}
+
+function drawLandArea(ctx, canvas, coordinates) {
+    if (coordinates.length === 0) return;
+
+    ctx.beginPath();
+    const firstPoint = coordinates[0];
+    ctx.moveTo(convertLonToX(firstPoint.lon, canvas.width), convertLatToY(firstPoint.lat, canvas.height));
+
+    for (let i = 1; i < coordinates.length; i++) {
+        const point = coordinates[i];
+        ctx.lineTo(convertLonToX(point.lon, canvas.width), convertLatToY(point.lat, canvas.height));
+    }
+
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+}
+
+function convertLonToX(lon, canvasWidth) {
+    // 経度: 125-145を0-canvasWidthにマッピング
+    return ((lon - 125) / (145 - 125)) * canvasWidth;
+}
+
+function convertLatToY(lat, canvasHeight) {
+    // 緯度: 50-30を0-canvasHeightにマッピング（上が高緯度）
+    return ((50 - lat) / (50 - 30)) * canvasHeight;
 }
 
 async function copyInfo(index) {
@@ -429,6 +664,43 @@ async function copyInfo(index) {
 
         alert("コピーに失敗しました");
     }
+}
+
+function downloadImage(index, filename) {
+    const canvas = document.getElementById(`typhoon-map-${index}`);
+    if (!canvas) return;
+
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.png`;
+    link.click();
+}
+
+async function shareImage(index) {
+    const canvas = document.getElementById(`typhoon-map-${index}`);
+    if (!canvas) return;
+
+    const typhoonData = window.typhoonData[index];
+
+    canvas.toBlob(async (blob) => {
+        const shareData = {
+            title: `台風${typhoonData.number}号 ${typhoonData.name}`,
+            text: `【台風情報】台風${typhoonData.number}号 ${typhoonData.name}\n気圧: ${typhoonData.pressure} hPa\n位置: 北緯${Math.abs(typhoonData.latitude).toFixed(2)}°`,
+            files: [
+                new File([blob], `typhoon-${typhoonData.number}.png`, { type: 'image/png' })
+            ]
+        };
+
+        try {
+            if (navigator.share && navigator.canShare(shareData)) {
+                await navigator.share(shareData);
+            } else {
+                alert('このブラウザではシェア機能が利用できません');
+            }
+        } catch(error) {
+            console.log('シェアがキャンセルされました', error);
+        }
+    });
 }
 
 getTyphoonInfo();
