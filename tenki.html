@@ -5,11 +5,88 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>天気予報 | TokyoEastBranch</title>
 <style>
-    body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
-    #backBtn { display:inline-block; margin-bottom:15px; padding:10px 16px; background:#0066cc; color:white; text-decoration:none; border-radius:8px; font-weight:bold; }
-    .buttons { display:flex; justify-content:center; gap:10px; margin-bottom:15px; }
-    button { padding:12px 20px; border:none; border-radius:8px; cursor:pointer; background:#003b80; color:white; font-weight:bold; }
-    #result { white-space:pre-wrap; background:white; border:1px solid #ccc; border-radius:10px; padding:20px; line-height:1.6; }
+    :root {
+        --bg-color: #0b0f16;
+        --card-bg: #0f1720;
+        --text-color: #e6eef8;
+        --button-bg: #003b80;
+        --button-hover: #005acc;
+        --border-color: #333;
+        --shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    :root[data-theme="light"] {
+        --bg-color: #f5f5f5;
+        --card-bg: #ffffff;
+        --text-color: #333;
+        --button-bg: #0066cc;
+        --button-hover: #0052a3;
+        --border-color: #ccc;
+        --shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    @media (prefers-color-scheme: light) {
+        :root:not([data-theme="dark"]) {
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --button-bg: #0066cc;
+            --button-hover: #0052a3;
+            --border-color: #ccc;
+            --shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    }
+
+    * { transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease; }
+
+    body { 
+        font-family: sans-serif; 
+        max-width: 900px; 
+        margin: 40px auto; 
+        padding: 20px; 
+        background: var(--bg-color);
+        color: var(--text-color);
+    }
+
+    #backBtn { 
+        display: inline-block;
+        margin-bottom: 15px; 
+        padding: 10px 16px; 
+        background: var(--button-bg); 
+        color: white; 
+        text-decoration: none; 
+        border-radius: 8px; 
+        font-weight: bold;
+    }
+
+    .buttons { 
+        display: flex;
+        justify-content: center; 
+        gap: 10px; 
+        margin-bottom: 15px; 
+    }
+
+    button { 
+        padding: 12px 20px; 
+        border: none; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        background: var(--button-bg); 
+        color: white; 
+        font-weight: bold;
+        transition: background 0.3s;
+    }
+    button:hover { background: var(--button-hover); }
+
+    #result { 
+        white-space: pre-wrap; 
+        background: var(--card-bg); 
+        border: 1px solid var(--border-color); 
+        border-radius: 10px; 
+        padding: 20px; 
+        line-height: 1.6;
+        color: var(--text-color);
+    }
 </style>
 </head>
 <body>
@@ -80,6 +157,18 @@ function copyInfo() {
     navigator.clipboard.writeText(document.getElementById("result").textContent);
     alert("コピーしました");
 }
+
+// index.htmlのテーマ設定と同期
+(function(){
+    const root = document.documentElement;
+    const saved = localStorage.getItem('siteTheme');
+    if (saved === 'dark' || saved === 'light') {
+        root.setAttribute('data-theme', saved);
+    } else {
+        root.removeAttribute('data-theme');
+    }
+})();
 </script>
+
 </body>
 </html>
