@@ -91,21 +91,24 @@ button:hover{
     background:white;
     border:1px solid #ccc;
     border-radius:10px;
-    padding:20px;
+    padding:15px;
     margin-bottom:15px;
     box-shadow:0 2px 5px rgba(0,0,0,0.1);
+    text-align:center;
 }
 
 .image-container canvas{
     max-width:100%;
     height:auto;
     display:block;
-    margin-bottom:10px;
+    margin:0 auto 10px;
+    border:1px solid #ddd;
 }
 
 .image-buttons{
     display:flex;
     gap:8px;
+    justify-content:center;
 }
 
 .downloadBtn, .shareBtn{
@@ -478,190 +481,225 @@ function drawTyphoonMap(index, typhoonData) {
     const canvas = document.getElementById(`typhoon-map-${index}`);
     if (!canvas) return;
 
-    canvas.width = 600;
-    canvas.height = 500;
+    const width = 800;
+    const height = 600;
+    canvas.width = width;
+    canvas.height = height;
 
     const ctx = canvas.getContext('2d');
 
-    // 背景
-    ctx.fillStyle = '#e6f2ff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // 背景（空）
+    ctx.fillStyle = '#e8f4f8';
+    ctx.fillRect(0, 0, width, height);
 
-    // グリッド
-    ctx.strokeStyle = '#cccccc';
+    // グリッド線
+    ctx.strokeStyle = '#d0d0d0';
     ctx.lineWidth = 1;
-    for (let i = 0; i <= 10; i++) {
-        ctx.beginPath();
-        ctx.moveTo((canvas.width / 10) * i, 0);
-        ctx.lineTo((canvas.width / 10) * i, canvas.height);
-        ctx.stroke();
+    ctx.setLineDash([2, 2]);
 
+    for (let lon = 120; lon <= 150; lon += 5) {
+        const x = lonToX(lon, width);
         ctx.beginPath();
-        ctx.moveTo(0, (canvas.height / 10) * i);
-        ctx.lineTo(canvas.width, (canvas.height / 10) * i);
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
         ctx.stroke();
     }
 
-    // 日本列島の簡易描画
-    drawJapanOutline(ctx, canvas);
+    for (let lat = 20; lat <= 50; lat += 5) {
+        const y = latToY(lat, height);
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+    }
 
-    // 台風の中心位置を計算（緯度経度をキャンバス座標に変換）
-    const centerX = convertLonToX(typhoonData.longitude, canvas.width);
-    const centerY = convertLatToY(typhoonData.latitude, canvas.height);
+    ctx.setLineDash([]);
 
-    // 台風の風域を円で表現
-    ctx.fillStyle = 'rgba(255, 165, 0, 0.2)';
+    // 経緯度ラベル
+    ctx.fillStyle = '#666';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'center';
+
+    for (let lon = 120; lon <= 150; lon += 10) {
+        const x = lonToX(lon, width);
+        ctx.fillText(lon + '°', x, height - 5);
+    }
+
+    ctx.textAlign = 'right';
+    for (let lat = 30; lat <= 50; lat += 5) {
+        const y = latToY(lat, height);
+        ctx.fillText(lat + '°', 25, y + 4);
+    }
+
+    // 日本列島を描画
+    drawJapan(ctx, width, height);
+
+    // 台風情報
+    const centerX = lonToX(typhoonData.longitude, width);
+    const centerY = latToY(typhoonData.latitude, height);
+
+    // 風域（円形）
+    ctx.fillStyle = 'rgba(255, 165, 0, 0.15)';
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 60, 0, Math.PI * 2);
+    ctx.arc(centerX, centerY, 70, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = 'rgba(255, 165, 0, 0.5)';
+    ctx.strokeStyle = 'rgba(255, 165, 0, 0.4)';
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // 台風の中心
-    ctx.fillStyle = '#ff4444';
+    // 台風の中心（赤い点）
+    ctx.fillStyle = '#ff0000';
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
+    ctx.arc(centerX, centerY, 10, 0, Math.PI * 2);
     ctx.fill();
 
-    // 中心にバツ印
-    ctx.strokeStyle = '#ff4444';
+    ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(centerX - 10, centerY - 10);
-    ctx.lineTo(centerX + 10, centerY + 10);
-    ctx.moveTo(centerX + 10, centerY - 10);
-    ctx.lineTo(centerX - 10, centerY + 10);
     ctx.stroke();
 
-    // 情報を表示
-    ctx.fillStyle = '#000000';
-    ctx.font = 'bold 18px sans-serif';
+    // 中心に×マーク
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(centerX - 8, centerY - 8);
+    ctx.lineTo(centerX + 8, centerY + 8);
+    ctx.moveTo(centerX + 8, centerY - 8);
+    ctx.lineTo(centerX - 8, centerY + 8);
+    ctx.stroke();
+
+    // 情報ボックス
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.fillRect(10, 10, 280, 110);
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(10, 10, 280, 110);
+
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 16px sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(`台風${typhoonData.number}号 ${typhoonData.name}`, 20, 30);
 
-    ctx.font = '14px sans-serif';
-    ctx.fillText(`位置: 北緯${Math.abs(typhoonData.latitude).toFixed(2)}°　東経${typhoonData.longitude.toFixed(2)}°`, 20, 55);
-    ctx.fillText(`気圧: ${typhoonData.pressure} hPa　最大風速: ${typhoonData.wind} m/s`, 20, 75);
+    ctx.font = '12px sans-serif';
+    ctx.fillStyle = '#333';
+    ctx.fillText(`位置: 北緯${Math.abs(typhoonData.latitude).toFixed(1)}° 東経${typhoonData.longitude.toFixed(1)}°`, 20, 50);
+    ctx.fillText(`気圧: ${typhoonData.pressure} hPa`, 20, 65);
+    ctx.fillText(`最大風速: ${typhoonData.wind} m/s`, 20, 80);
     ctx.fillText(`移動: ${typhoonData.direction} ${typhoonData.speedText}`, 20, 95);
+    ctx.fillText(`強さ: ${typhoonData.intensity}　大きさ: ${typhoonData.size}`, 20, 110);
 
     // 凡例
-    ctx.fillStyle = 'white';
-    ctx.fillRect(canvas.width - 180, canvas.height - 80, 170, 70);
-    ctx.strokeStyle = '#999';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.fillRect(width - 220, height - 100, 210, 90);
+    ctx.strokeStyle = '#333';
     ctx.lineWidth = 1;
-    ctx.strokeRect(canvas.width - 180, canvas.height - 80, 170, 70);
+    ctx.strokeRect(width - 220, height - 100, 210, 90);
 
-    ctx.fillStyle = '#ff4444';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillStyle = '#000';
+    ctx.textAlign = 'left';
+    ctx.fillText('凡例', width - 210, height - 82);
+
+    ctx.fillStyle = '#ff0000';
     ctx.beginPath();
-    ctx.arc(canvas.width - 160, canvas.height - 60, 5, 0, Math.PI * 2);
+    ctx.arc(width - 195, height - 65, 5, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = '#000000';
-    ctx.font = '12px sans-serif';
+    ctx.font = '11px sans-serif';
+    ctx.fillStyle = '#333';
     ctx.textAlign = 'left';
-    ctx.fillText('台風中心', canvas.width - 150, canvas.height - 55);
+    ctx.fillText('台風中心', width - 185, height - 62);
 
     ctx.fillStyle = 'rgba(255, 165, 0, 0.3)';
-    ctx.fillRect(canvas.width - 160, canvas.height - 35, 15, 15);
-    ctx.fillStyle = '#000000';
-    ctx.fillText('風域', canvas.width - 140, canvas.height - 22);
+    ctx.fillRect(width - 195, height - 48, 12, 12);
+    ctx.strokeStyle = 'rgba(255, 165, 0, 0.6)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(width - 195, height - 48, 12, 12);
+
+    ctx.fillStyle = '#333';
+    ctx.fillText('風域', width - 178, height - 40);
+
+    ctx.fillStyle = '#90EE90';
+    ctx.fillRect(width - 195, height - 25, 12, 12);
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(width - 195, height - 25, 12, 12);
+
+    ctx.fillStyle = '#333';
+    ctx.fillText('日本', width - 178, height - 17);
 }
 
-function drawJapanOutline(ctx, canvas) {
-    // 日本列島の簡易的なアウトラインを描画
-    ctx.fillStyle = '#90EE90';
-    ctx.strokeStyle = '#333333';
-    ctx.lineWidth = 2;
-
-    // 本州
+function drawJapan(ctx, width, height) {
+    // 本州の簡易描画
     const honshu = [
-        {lat: 45.5, lon: 142},
-        {lat: 43, lon: 145},
-        {lat: 40, lon: 142},
-        {lat: 38, lon: 140},
-        {lat: 37, lon: 138},
-        {lat: 38, lon: 135},
-        {lat: 40, lon: 132},
-        {lat: 42, lon: 130},
-        {lat: 44, lon: 131},
-        {lat: 45, lon: 137}
+        [131, 45], [145, 45], [145, 40], [140, 36], [135, 36], [130, 38], [128, 40]
     ];
 
-    drawLandArea(ctx, canvas, honshu);
+    ctx.fillStyle = '#90EE90';
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1.5;
+
+    ctx.beginPath();
+    ctx.moveTo(lonToX(honshu[0][0], width), latToY(honshu[0][1], height));
+    for (let i = 1; i < honshu.length; i++) {
+        ctx.lineTo(lonToX(honshu[i][0], width), latToY(honshu[i][1], height));
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
 
     // 北海道
     const hokkaido = [
-        {lat: 45.5, lon: 140},
-        {lat: 45.5, lon: 145},
-        {lat: 43.5, lon: 145.5},
-        {lat: 43, lon: 140.5}
+        [140, 45.5], [145, 45], [145, 43], [138, 43]
     ];
-    drawLandArea(ctx, canvas, hokkaido);
+
+    ctx.beginPath();
+    ctx.moveTo(lonToX(hokkaido[0][0], width), latToY(hokkaido[0][1], height));
+    for (let i = 1; i < hokkaido.length; i++) {
+        ctx.lineTo(lonToX(hokkaido[i][0], width), latToY(hokkaido[i][1], height));
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
 
     // 九州
     const kyushu = [
-        {lat: 37, lon: 132},
-        {lat: 36, lon: 132},
-        {lat: 35, lon: 135},
-        {lat: 36, lon: 135}
+        [130, 36], [135, 36], [135, 33], [130, 33]
     ];
-    drawLandArea(ctx, canvas, kyushu);
-}
-
-function drawLandArea(ctx, canvas, coordinates) {
-    if (coordinates.length === 0) return;
 
     ctx.beginPath();
-    const firstPoint = coordinates[0];
-    ctx.moveTo(convertLonToX(firstPoint.lon, canvas.width), convertLatToY(firstPoint.lat, canvas.height));
-
-    for (let i = 1; i < coordinates.length; i++) {
-        const point = coordinates[i];
-        ctx.lineTo(convertLonToX(point.lon, canvas.width), convertLatToY(point.lat, canvas.height));
+    ctx.moveTo(lonToX(kyushu[0][0], width), latToY(kyushu[0][1], height));
+    for (let i = 1; i < kyushu.length; i++) {
+        ctx.lineTo(lonToX(kyushu[i][0], width), latToY(kyushu[i][1], height));
     }
-
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 }
 
-function convertLonToX(lon, canvasWidth) {
-    // 経度: 125-145を0-canvasWidthにマッピング
-    return ((lon - 125) / (145 - 125)) * canvasWidth;
+function lonToX(lon, width) {
+    // 経度: 120-150を0-widthにマッピング
+    return ((lon - 120) / (150 - 120)) * width;
 }
 
-function convertLatToY(lat, canvasHeight) {
-    // 緯度: 50-30を0-canvasHeightにマッピング（上が高緯度）
-    return ((50 - lat) / (50 - 30)) * canvasHeight;
+function latToY(lat, height) {
+    // 緯度: 50-20を0-heightにマッピング（上が高緯度）
+    return ((50 - lat) / (50 - 20)) * height;
 }
 
 async function copyInfo(index) {
-
-    const text =
-        window.typhoonTexts[index];
+    const text = window.typhoonTexts[index];
 
     try {
-
         await navigator.clipboard.writeText(text);
 
-        const status =
-            document.getElementById("status");
-
-        status.textContent =
-            "✅ コピーしました";
+        const status = document.getElementById("status");
+        status.textContent = "✅ コピーしました";
 
         setTimeout(() => {
-
-            status.textContent =
-                "最終更新: " +
-                new Date().toLocaleString("ja-JP");
-
+            status.textContent = "最終更新: " + new Date().toLocaleString("ja-JP");
         }, 2000);
-
     } catch {
-
         alert("コピーに失敗しました");
     }
 }
@@ -685,7 +723,7 @@ async function shareImage(index) {
     canvas.toBlob(async (blob) => {
         const shareData = {
             title: `台風${typhoonData.number}号 ${typhoonData.name}`,
-            text: `【台風情報】台風${typhoonData.number}号 ${typhoonData.name}\n気圧: ${typhoonData.pressure} hPa\n位置: 北緯${Math.abs(typhoonData.latitude).toFixed(2)}°`,
+            text: `【台風情報】台風${typhoonData.number}号 ${typhoonData.name}\n気圧: ${typhoonData.pressure} hPa`,
             files: [
                 new File([blob], `typhoon-${typhoonData.number}.png`, { type: 'image/png' })
             ]
@@ -698,7 +736,7 @@ async function shareImage(index) {
                 alert('このブラウザではシェア機能が利用できません');
             }
         } catch(error) {
-            console.log('シェアがキャンセルされました', error);
+            console.log('シェアがキャンセルされました');
         }
     });
 }
