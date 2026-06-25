@@ -121,10 +121,12 @@
 
     .report-card h3 {
         color: var(--text-color);
+        margin-top: 0;
     }
 
     .report-card p {
         color: var(--text-color);
+        margin: 8px 0;
     }
 
     .copy-btn { 
@@ -135,6 +137,10 @@
 
     .copy-btn:hover { 
         background: var(--button-success-hover);
+    }
+
+    #result p {
+        color: var(--text-color);
     }
 </style>
 </head>
@@ -166,12 +172,14 @@ async function getTatsumakiInfo() {
         const xmlDoc = parser.parseFromString(text, "text/xml");
         const entries = Array.from(xmlDoc.getElementsByTagName("entry"));
 
-        const tornadoEntries = entries.filter(e => 
-            e.getElementsByTagName("title")[0]?.textContent === "気象防災速報(竜巻注意）"
-        ).slice(0, 5);
+        const tornadoEntries = entries.filter(e => {
+            const title = e.getElementsByTagName("title")[0]?.textContent || "";
+            return title.includes("気象防災速報") && title.includes("竜巻注意");
+        }).slice(0, 5);
 
         if (tornadoEntries.length === 0) {
             resultDiv.innerHTML = "<p>現在、発表されている気象防災速報(竜巻注意）はありません。</p>";
+            status.textContent = "最終確認: " + new Date().toLocaleString("ja-JP");
             return;
         }
 
@@ -182,21 +190,37 @@ async function getTatsumakiInfo() {
             const detailUrl = entry.getElementsByTagName("id")[0].textContent;
             const content = entry.getElementsByTagName("content")[0]?.textContent || "";
             
-            const areaMatch = content.match(/^【(.*?)気象防災速報（竜巻注意）】/);
+            const areaMatch = content.match(/^【(.*?)気象防災速報（竜巻注意）】/) || 
+                            content.match(/^【(.*?)】/);
             const areaName = areaMatch ? areaMatch[1] : "不明";
             const bodyText = content.replace(/^【.*?】/, "").trim();
             const dateStr = new Date(updated).toLocaleString("ja-JP");
 
             // 詳細データの取得
-            const detailRes = await fetch(detailUrl);
-            const detailXml = parser.parseFromString(await detailRes.text(), "text/xml");
-            
-            const reportNo = detailXml.getElementsByTagName("Serial")[0]?.textContent || "不明";
-            const valid = detailXml.getElementsByTagName("ValidDateTime")[0]?.textContent || "不明";
-            const validStr = valid !== "不明" ? new Date(valid).toLocaleString("ja-JP") : "不明";
+            let reportNo = "不明";
+            let validStr = "不明";
+
+            try {
+                const detailRes = await fetch(detailUrl);
+                const detailText = await detailRes.text();
+                const detailXml = parser.parseFromString(detailText, "text/xml");
+                
+                const serialNode = detailXml.getElementsByTagName("Serial")[0];
+                if (serialNode) {
+                    reportNo = serialNode.textContent;
+                }
+                
+                const validNode = detailXml.getElementsByTagName("ValidDateTime")[0];
+                if (validNode) {
+                    const valid = validNode.textContent;
+                    validStr = new Date(valid).toLocaleString("ja-JP");
+                }
+            } catch (e) {
+                console.warn("詳細情報の取得に失敗:", e);
+            }
 
             // 一件ずつコピーできるようにIDを付与
-            const cardId = "card-" + reportNo + Math.floor(Math.random() * 1000);
+            const cardId = "card-" + reportNo + Math.floor(Math.random() * 10000);
             
             htmlOutput += `
             <div class="report-card" id="${cardId}">
@@ -216,6 +240,7 @@ async function getTatsumakiInfo() {
     } catch (e) {
         resultDiv.innerHTML = `<p>エラーが発生しました: ${e.message}</p>`;
         status.textContent = "取得失敗";
+        console.error("詳細エラー:", e);
     }
 }
 
