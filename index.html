@@ -12,7 +12,31 @@
     --primary-color: #003b80;
     --accent-color: #006837;
     --bg-color: #f4f7fb;
+    --card-bg: #ffffff;
     --text-color: #333;
+    --muted-color: rgba(0,0,0,0.6);
+    --header-grad-from: #001f4d;
+    --header-grad-to: var(--primary-color);
+    --overlay-color: rgba(0,0,0,0.4);
+    --shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+html[data-theme="dark"], @media (prefers-color-scheme: dark) {
+    --primary-color: #67a8ff;
+    --accent-color: #66d18e;
+    --bg-color: #0b0f16;
+    --card-bg: #0f1720;
+    --text-color: #e6eef8;
+    --muted-color: rgba(230,238,248,0.7);
+    --header-grad-from: #021027;
+    --header-grad-to: #063a5f;
+    --overlay-color: rgba(0,0,0,0.6);
+    --shadow: 0 6px 18px rgba(0,0,0,0.6);
+}
+
+/* Smooth theme transitions */
+* {
+    transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
 }
 
 html, body {
@@ -33,7 +57,7 @@ header {
     justify-content: space-between;
     align-items: center;
     padding: 20px 6%;
-    background: linear-gradient(135deg, #001f4d, var(--primary-color));
+    background: linear-gradient(135deg, var(--header-grad-from), var(--header-grad-to));
     color: #fff;
     position: relative;
 }
@@ -54,9 +78,23 @@ header {
 }
 
 .header-title h1 { margin: 0; font-size: 22px; }
-.header-title p { margin: 0; font-size: 12px; opacity: 0.8; }
+.header-title p { margin: 0; font-size: 12px; opacity: 0.9; }
 
 #clock { font-family: monospace; }
+
+/* theme toggle */
+.theme-toggle {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    margin-left: 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.theme-toggle:focus { outline: 2px solid rgba(255,255,255,0.2); border-radius: 6px; }
 
 .menu-btn {
     position: absolute;
@@ -64,13 +102,14 @@ header {
     top: 18px;
     font-size: 28px;
     cursor: pointer;
+    color: #fff;
 }
 
 /* OVERLAY */
 .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.4);
+    background: var(--overlay-color);
     display: none;
     z-index: 999;
 }
@@ -83,12 +122,14 @@ header {
     right: 0;
     width: 300px;
     height: 100%;
-    background: #fff;
+    background: var(--card-bg);
+    color: var(--text-color);
     transform: translateX(100%);
     transition: 0.3s;
     z-index: 1000;
     padding: 20px;
     overflow-y: auto;
+    box-shadow: var(--shadow);
 }
 .side-menu.active { transform: translateX(0); }
 
@@ -99,10 +140,11 @@ header {
     text-align: left;
     padding: 12px;
     border: none;
-    background: #f4f7fb;
+    background: rgba(255,255,255,0.03);
     border-radius: 8px;
     font-weight: bold;
     cursor: pointer;
+    color: var(--text-color);
 }
 
 .accordion-content { display: none; padding-left: 10px; }
@@ -120,10 +162,11 @@ header {
 .nav-btn {
     padding: 12px 22px;
     border: 2px solid var(--primary-color);
-    background: #fff;
+    background: transparent;
     border-radius: 30px;
     font-weight: bold;
     text-decoration: none;
+    color: var(--primary-color);
 }
 
 /* GRID */
@@ -145,14 +188,15 @@ header {
 
 /* CARD */
 .card {
-    background: #fff;
+    background: var(--card-bg);
     border-radius: 18px;
     padding: 25px 18px;
     text-align: center;
     text-decoration: none;
     color: var(--text-color);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    box-shadow: var(--shadow);
     transition: 0.25s;
+    border: 1px solid rgba(255,255,255,0.03);
 }
 .card:hover { transform: translateY(-6px); }
 
@@ -192,32 +236,38 @@ header {
 </head>
 
 <body>
-
 <header>
     <div class="header-left">
-        <img src="images/teb.png.JPG" class="logo" id="secretLogo">
+        <img src="images/teb.png.JPG" class="logo" id="secretLogo" alt="TokyoEastBranch ロゴ">
         <div class="header-title">
             <h1>提供者向け情報サイト</h1>
             <p>TokyoEastBranch Provider Portal</p>
         </div>
     </div>
 
-    <div id="clock">--:--:--</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+        <div id="clock" aria-live="polite">--:--:--</div>
 
-    <div class="menu-btn" onclick="toggleMenu()">
-        <i class="fa-solid fa-bars"></i>
+        <button id="themeToggle" class="theme-toggle" aria-pressed="false" title="テーマ切替（ダーク/ライト）">
+            <i id="themeIcon" class="fa-solid fa-moon"></i>
+            <span class="sr-only">テーマ切替</span>
+        </button>
+
+        <div class="menu-btn" onclick="toggleMenu()" aria-label="メニューを開く">
+            <i class="fa-solid fa-bars"></i>
+        </div>
     </div>
 </header>
 
 <div class="overlay" onclick="toggleMenu()"></div>
 
 <!-- サイドバー（削除なし維持） -->
-<div class="side-menu" id="menu">
+<div class="side-menu" id="menu" role="navigation" aria-label="サイドメニュー">
 
     <h3>メニュー</h3>
 
     <div class="accordion-item">
-        <button class="accordion-btn" onclick="toggleAccordion(this)">🌤 気象情報</button>
+        <button class="accordion-btn" onclick="toggleAccordion(this)" aria-expanded="false">🌤 気象情報</button>
         <div class="accordion-content">
             <a href="#weather-section">気象情報一覧TOP</a>
             <a href="weather.html">気象警報</a>
@@ -231,7 +281,7 @@ header {
     </div>
 
     <div class="accordion-item">
-        <button class="accordion-btn" onclick="toggleAccordion(this)">🌏 地震・津波情報</button>
+        <button class="accordion-btn" onclick="toggleAccordion(this)" aria-expanded="false">🌏 地震・津波情報</button>
         <div class="accordion-content">
             <a href="#eq-section">地震・津波TOP</a>
             <a href="https://tokyo145553-hub.github.io/Mouyada/">地震情報</a>
@@ -240,9 +290,8 @@ header {
         </div>
     </div>
 
-    <!-- ★その他（消してない） -->
     <div class="accordion-item">
-        <button class="accordion-btn" onclick="toggleAccordion(this)">📄 その他</button>
+        <button class="accordion-btn" onclick="toggleAccordion(this)" aria-expanded="false">📄 その他</button>
         <div class="accordion-content">
             <a href="terms.html">利用規約</a>
         </div>
@@ -251,11 +300,11 @@ header {
 </div>
 
 <!-- NAV -->
-<nav class="nav-menu">
+<nav class="nav-menu" aria-label="主要ナビゲーション">
     <a href="#weather-section" class="nav-btn">気象情報一覧</a>
 </nav>
 
-<nav class="nav-menu">
+<nav class="nav-menu" aria-label="地震ナビゲーション">
     <a href="#eq-section" class="nav-btn">地震・津波情報一覧</a>
 </nav>
 
@@ -281,7 +330,7 @@ header {
     </a>
 
     <a href="https://script.google.com/macros/s/AKfycbwoh1YsazOyU86oMUv0RJSMhfBXs036Rz0eoi1iz6l8MruUU3oIJV0n8FOp8QCZZq6fNQ/exec"
-       class="card" target="_blank">
+       class="card" target="_blank" rel="noopener">
         <i class="fa-solid fa-file-lines"></i>
         <h3>気象解説情報（地方・全般）</h3>
         <div class="tags"><span class="tag-unavailable">外部</span><span class="tag-copy">転載可</span></div>
@@ -295,7 +344,7 @@ header {
 
 <div class="grid">
 
-    <a href="https://tokyo145553-hub.github.io/Mouyada/" class="card">
+    <a href="https://tokyo145553-hub.github.io/Mouyada/" class="card" target="_blank" rel="noopener">
         <i class="fa-solid fa-earth-asia"></i>
         <h3>地震情報</h3>
         <div class="tags"><span class="tag-unavailable">外部</span><span class="tag-copy">転載可</span></div>
@@ -312,7 +361,6 @@ header {
         <h3>緊急地震速報</h3>
         <div class="tags"><span class="tag-status">EEW</span><span class="tag-copy">転載可</span></div>
     </a>
-
     
 </div>
 </section>
@@ -322,9 +370,9 @@ header {
 <h2 class="section-title">その他</h2>
 
 <div class="grid">
-    <a href="#" class="card">
+    <a href="#" class="card" aria-labelledby="visitorTitle">
     <i class="fa-solid fa-chart-line"></i>
-    <h3>累計利用数</h3>
+    <h3 id="visitorTitle">累計利用数</h3>
     <p id="visitorCount">読込中...</p>
     <div class="tags">
         <span class="tag-status">統計</span>
@@ -339,11 +387,68 @@ header {
 </div>
 </section>
 
-<footer style="text-align:center;padding:20px;color:#888;">
+<footer style="text-align:center;padding:20px;color:var(--muted-color);">
     &copy; TokyoEastBranch
 </footer>
 
 <script>
+/* ---------- Theme (ダークモード) ---------- */
+const root = document.documentElement;
+const themeToggleBtn = document.getElementById('themeToggle');
+const themeIcon = document.getElementById('themeIcon');
+
+function applyTheme(theme) {
+    if (theme === 'dark') {
+        root.setAttribute('data-theme', 'dark');
+        themeToggleBtn.setAttribute('aria-pressed', 'true');
+        themeIcon.className = 'fa-solid fa-sun';
+    } else if (theme === 'light') {
+        root.setAttribute('data-theme', 'light');
+        themeToggleBtn.setAttribute('aria-pressed', 'false');
+        themeIcon.className = 'fa-solid fa-moon';
+    } else {
+        // auto: remove explicit attr to allow CSS prefers-color-scheme fallback
+        root.removeAttribute('data-theme');
+        themeToggleBtn.setAttribute('aria-pressed', 'false');
+        // set icon based on computed preference
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        themeIcon.className = prefersDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    }
+}
+
+function toggleTheme() {
+    const current = localStorage.getItem('siteTheme');
+    if (current === 'dark') {
+        localStorage.setItem('siteTheme', 'light');
+        applyTheme('light');
+    } else if (current === 'light') {
+        localStorage.removeItem('siteTheme'); // go to auto
+        applyTheme(null);
+    } else {
+        localStorage.setItem('siteTheme', 'dark');
+        applyTheme('dark');
+    }
+}
+
+// initialize theme on load
+(function(){
+    const saved = localStorage.getItem('siteTheme'); // 'dark' | 'light' | null
+    if (saved === 'dark' || saved === 'light') {
+        applyTheme(saved);
+    } else {
+        // if no saved preference, follow prefers-color-scheme
+        applyTheme(null);
+    }
+
+    // update icon if system preference changes and no saved preference
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (!localStorage.getItem('siteTheme')) applyTheme(null);
+        });
+    }
+})();
+
+/* ---------- Menu / Accordion ---------- */
 function toggleMenu(){
     document.getElementById("menu").classList.toggle("active");
     document.querySelector(".overlay").classList.toggle("active");
@@ -351,41 +456,34 @@ function toggleMenu(){
 
 function toggleAccordion(btn){
     const c = btn.nextElementSibling;
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', (!expanded).toString());
     c.style.display = (c.style.display === "block") ? "none" : "block";
 }
 
+/* ---------- Clock ---------- */
 setInterval(() => {
     document.getElementById("clock").textContent =
         new Date().toLocaleTimeString("ja-JP");
 }, 1000);
 
-// ロゴクリックでXへ移動
+/* ---------- Logo click (既存の挙動保守) ---------- */
 let logoClickCount = 0;
 let logoTimer;
-
 document.getElementById("secretLogo").addEventListener("click", () => {
-
     logoClickCount++;
-
     if (logoClickCount >= 1) {
-
         alert("TokyoEastBranch Xへ移動します");
-
-        window.location.href =
-            "https://x.com/tokyoeast004021";
-
+        window.location.href = "https://x.com/tokyoeast004021";
         logoClickCount = 0;
     }
-
     clearTimeout(logoTimer);
-
     logoTimer = setTimeout(() => {
         logoClickCount = 0;
     }, 3000);
-
 });
 
-// 累計利用数取得
+/* ---------- 累計利用数取得 ---------- */
 fetch("https://script.google.com/macros/s/AKfycbxEEox1elaOEz5ZF16mlP3aJsxx7yH5bV0BUanrj7aBFLQ_xj94IV-nFA5HFkhgBsAS/exec")
 .then(response => {
     if (!response.ok) {
