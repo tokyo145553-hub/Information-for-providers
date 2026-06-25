@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <style>
+/* --- 基本（ライト） --- */
 :root {
     --primary-color: #003b80;
     --accent-color: #006837;
@@ -21,7 +22,8 @@
     --shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
-html[data-theme="dark"], @media (prefers-color-scheme: dark) {
+/* --- 明示的にダークを選んだ場合 --- */
+:root[data-theme="dark"] {
     --primary-color: #67a8ff;
     --accent-color: #66d18e;
     --bg-color: #0b0f16;
@@ -32,6 +34,22 @@ html[data-theme="dark"], @media (prefers-color-scheme: dark) {
     --header-grad-to: #063a5f;
     --overlay-color: rgba(0,0,0,0.6);
     --shadow: 0 6px 18px rgba(0,0,0,0.6);
+}
+
+/* --- システム設定がダークの場合（ただしユーザーが明示的に light を選んでいなければ適用） --- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --primary-color: #67a8ff;
+    --accent-color: #66d18e;
+    --bg-color: #0b0f16;
+    --card-bg: #0f1720;
+    --text-color: #e6eef8;
+    --muted-color: rgba(230,238,248,0.7);
+    --header-grad-from: #021027;
+    --header-grad-to: #063a5f;
+    --overlay-color: rgba(0,0,0,0.6);
+    --shadow: 0 6px 18px rgba(0,0,0,0.6);
+  }
 }
 
 /* Smooth theme transitions */
@@ -410,7 +428,6 @@ function applyTheme(theme) {
         // auto: remove explicit attr to allow CSS prefers-color-scheme fallback
         root.removeAttribute('data-theme');
         themeToggleBtn.setAttribute('aria-pressed', 'false');
-        // set icon based on computed preference
         const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         themeIcon.className = prefersDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
     }
@@ -430,6 +447,11 @@ function toggleTheme() {
     }
 }
 
+// クリックイベントを登録（ここが不足しているとボタンが動作しません）
+if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', toggleTheme);
+}
+
 // initialize theme on load
 (function(){
     const saved = localStorage.getItem('siteTheme'); // 'dark' | 'light' | null
@@ -442,9 +464,17 @@ function toggleTheme() {
 
     // update icon if system preference changes and no saved preference
     if (window.matchMedia) {
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            if (!localStorage.getItem('siteTheme')) applyTheme(null);
-        });
+        // addEventListener may not be supported in very old browsers; fallback to onchange
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        if (typeof mq.addEventListener === 'function') {
+            mq.addEventListener('change', e => {
+                if (!localStorage.getItem('siteTheme')) applyTheme(null);
+            });
+        } else if (typeof mq.addListener === 'function') {
+            mq.addListener(e => {
+                if (!localStorage.getItem('siteTheme')) applyTheme(null);
+            });
+        }
     }
 })();
 
