@@ -5,16 +5,137 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>気象防災速報(竜巻注意）</title>
 <style>
-    body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
-    #backBtn { display: inline-block; margin-bottom: 15px; padding: 10px 16px; background: #0066cc; color: white; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: bold; }
-    #backBtn:hover { background: #0055aa; }
-    h1 { text-align: center; margin-top: 0; }
-    .buttons { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
-    button { padding: 10px 18px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; }
-    button:hover { opacity: 0.85; }
-    #status { text-align: center; margin-bottom: 10px; color: green; font-size: 14px; }
-    .report-card { background: white; border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .copy-btn { background: #28a745; color: white; margin-top: 10px; }
+    :root {
+        --bg-color: #0b0f16;
+        --card-bg: #0f1720;
+        --text-color: #e6eef8;
+        --button-bg: #003b80;
+        --button-hover: #005acc;
+        --button-success-bg: #28a745;
+        --button-success-hover: #218838;
+        --border-color: #333;
+        --status-color: #66d18e;
+        --shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    :root[data-theme="light"] {
+        --bg-color: #f5f5f5;
+        --card-bg: #ffffff;
+        --text-color: #333;
+        --button-bg: #0066cc;
+        --button-hover: #0055aa;
+        --button-success-bg: #28a745;
+        --button-success-hover: #218838;
+        --border-color: #ccc;
+        --status-color: #28a745;
+        --shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    @media (prefers-color-scheme: light) {
+        :root:not([data-theme="dark"]) {
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --button-bg: #0066cc;
+            --button-hover: #0055aa;
+            --button-success-bg: #28a745;
+            --button-success-hover: #218838;
+            --border-color: #ccc;
+            --status-color: #28a745;
+            --shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    }
+
+    * { transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease; }
+
+    body { 
+        font-family: sans-serif; 
+        max-width: 900px; 
+        margin: 40px auto; 
+        padding: 20px; 
+        background: var(--bg-color);
+        color: var(--text-color);
+    }
+
+    #backBtn { 
+        display: inline-block; 
+        margin-bottom: 15px; 
+        padding: 10px 16px; 
+        background: var(--button-bg); 
+        color: white; 
+        text-decoration: none; 
+        border-radius: 8px; 
+        font-size: 14px; 
+        font-weight: bold;
+        transition: background 0.3s;
+    }
+
+    #backBtn:hover { 
+        background: var(--button-hover); 
+    }
+
+    h1 { 
+        text-align: center; 
+        margin-top: 0;
+        color: var(--text-color);
+    }
+
+    .buttons { 
+        display: flex; 
+        justify-content: center; 
+        gap: 10px; 
+        margin-bottom: 15px; 
+    }
+
+    button { 
+        padding: 10px 18px; 
+        font-size: 16px; 
+        border: none; 
+        border-radius: 8px; 
+        cursor: pointer;
+        background: var(--button-bg);
+        color: white;
+        transition: background 0.3s;
+    }
+
+    button:hover { 
+        background: var(--button-hover);
+    }
+
+    #status { 
+        text-align: center; 
+        margin-bottom: 10px; 
+        color: var(--status-color); 
+        font-size: 14px; 
+    }
+
+    .report-card { 
+        background: var(--card-bg); 
+        border: 1px solid var(--border-color); 
+        padding: 15px; 
+        margin: 10px 0; 
+        border-radius: 8px; 
+        box-shadow: var(--shadow);
+        color: var(--text-color);
+    }
+
+    .report-card h3 {
+        color: var(--text-color);
+    }
+
+    .report-card p {
+        color: var(--text-color);
+    }
+
+    .copy-btn { 
+        background: var(--button-success-bg); 
+        color: white; 
+        margin-top: 10px;
+    }
+
+    .copy-btn:hover { 
+        background: var(--button-success-hover);
+    }
 </style>
 </head>
 <body>
@@ -81,38 +202,5 @@ async function getTatsumakiInfo() {
             <div class="report-card" id="${cardId}">
                 <h3>${areaName}気象防災速報（竜巻注意） 第${reportNo}号</h3>
                 <div class="copy-content">
-                    <p>${dateStr} 気象庁発表</p>
-                    <p>${bodyText}</p>
-                    <p><b>有効期限: ${validStr} まで</b></p>
-                </div>
-                <button class="copy-btn" onclick="copySingleInfo('${cardId}')">📋 この情報をコピー</button>
-            </div>`;
-        }
-
-        resultDiv.innerHTML = htmlOutput;
-        status.textContent = "最終更新: " + new Date().toLocaleString("ja-JP");
-
-    } catch (e) {
-        resultDiv.innerHTML = `<p>エラーが発生しました: ${e.message}</p>`;
-        status.textContent = "取得失敗";
-    }
-}
-
-// 一件ずつコピーする関数
-function copySingleInfo(cardId) {
-    const card = document.getElementById(cardId);
-    const content = card.querySelector(".copy-content").innerText;
-    const title = card.querySelector("h3").innerText;
-    const fullText = `【${title}】\n${content}`;
-
-    navigator.clipboard.writeText(fullText).then(() => {
-        alert("コピーしました：\n" + title);
-    }).catch(() => {
-        alert("コピーに失敗しました");
-    });
-}
-
-getTatsumakiInfo();
-</script>
-</body>
-</html>
+                    <p>${date`*
+
