@@ -54,8 +54,8 @@ button:hover{
     opacity:0.85;
 }
 
-.copyBtn{
-    padding:6px 14px;
+.copyBtn, .downloadBtn, .openBtn{
+    padding:8px 14px;
     font-size:14px;
 }
 
@@ -68,36 +68,33 @@ button:hover{
 
 .typhoon-item{
     margin-bottom:30px;
-}
-
-.copy-wrap{
-    display:flex;
-    justify-content:flex-end;
-    gap:8px;
-    margin-bottom:6px;
-}
-
-.result{
-    white-space:pre-line;
-    background:white;
-    border:1px solid #ccc;
+    border:2px solid #ddd;
     border-radius:10px;
-    padding:20px;
-    line-height:1.8;
-    box-shadow:0 2px 5px rgba(0,0,0,0.1);
+    overflow:hidden;
 }
 
-.image-container{
+.typhoon-header{
+    background:#0066cc;
+    color:white;
+    padding:15px;
+    font-size:18px;
+    font-weight:bold;
+}
+
+.typhoon-content{
+    padding:20px;
+}
+
+.image-section{
     background:white;
     border:1px solid #ccc;
     border-radius:10px;
     padding:15px;
     margin-bottom:15px;
-    box-shadow:0 2px 5px rgba(0,0,0,0.1);
     text-align:center;
 }
 
-.image-container img{
+.image-section img{
     max-width:100%;
     height:auto;
     display:block;
@@ -106,31 +103,79 @@ button:hover{
     border-radius:8px;
 }
 
-.image-buttons{
+.image-loading{
+    padding:40px;
+    color:#999;
+    font-size:14px;
+}
+
+.image-error{
+    padding:20px;
+    color:#d9534f;
+    font-size:14px;
+    background:#f2dede;
+    border-radius:6px;
+}
+
+.button-group{
     display:flex;
     gap:8px;
     justify-content:center;
     flex-wrap:wrap;
+    margin-bottom:10px;
 }
 
-.downloadBtn, .shareBtn, .openBtn{
-    padding:8px 14px;
-    font-size:14px;
+.downloadBtn{
     background:#28a745;
     color:white;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
 }
 
-.downloadBtn:hover, .shareBtn:hover, .openBtn:hover{
+.downloadBtn:hover{
     opacity:0.85;
 }
 
+.copyBtn{
+    background:#17a2b8;
+    color:white;
+}
+
+.copyBtn:hover{
+    opacity:0.85;
+}
+
+.openBtn{
+    background:#ffc107;
+    color:#333;
+}
+
+.openBtn:hover{
+    opacity:0.85;
+}
+
+.info-section{
+    white-space:pre-line;
+    background:#f9f9f9;
+    border:1px solid #ccc;
+    border-radius:10px;
+    padding:15px;
+    line-height:1.8;
+    font-size:14px;
+}
+
 .jma-link{
+    text-align:center;
     font-size:12px;
     color:#666;
-    margin-top:8px;
+    margin-top:10px;
+}
+
+.jma-link a{
+    color:#0066cc;
+    text-decoration:none;
+}
+
+.jma-link a:hover{
+    text-decoration:underline;
 }
 </style>
 </head>
@@ -223,8 +268,12 @@ async function getTyphoonInfo() {
         if (typhoonEntries.length === 0) {
 
             result.innerHTML =
-                `<div class="result">【台風情報】
-現在、台風情報はありません</div>`;
+                `<div class="typhoon-item">
+                    <div class="typhoon-header">台風情報</div>
+                    <div class="typhoon-content">
+                        <div class="info-section">現在、台風情報はありません</div>
+                    </div>
+                </div>`;
 
             status.textContent =
                 "最終更新: " +
@@ -400,36 +449,41 @@ async function getTyphoonInfo() {
 移動方向　${t.direction}
 移動速度　${t.speedText}`;
 
-                const escaped =
-                    text.replace(/&/g, "&amp;")
-                        .replace(/</g, "&lt;")
-                        .replace(/>/g, "&gt;");
-
-                // 気象庁の台風画像URL
-                const jmaImageUrl = `https://www.data.jma.go.jp/developer/xml/feed/data_jma_go_jp_typhoon_000000_0000_0000_talus_000_webp_20050101000000_0.png`;
-                // 動的に台風情報ページから画像を取得
-                const typhoonPageUrl = `https://www.jma.go.jp/bosai/map.html?contents=typhoon`;
+                // 気象庁の進路図画像URL
+                // 台風号によって異なるURLを生成
+                const typhoonImageUrl = `https://www.data.jma.go.jp/bosai/mapseries/data/png/typhoon_${String(t.number).padStart(2, '0')}_latest.png`;
 
                 return `
 <div class="typhoon-item">
-    <div class="image-container">
-        <img src="https://www.jma.go.jp/bosai/typhoon/data/jtwc/wpac${String(t.number).padStart(2, '0')}_latest.jpg" 
-             alt="台風${t.number}号進路図" 
-             onerror="this.src='https://www.jma.go.jp/bosai/map.html?contents=typhoon'; this.style.display='none';">
-        <div class="image-buttons">
-            <button class="openBtn" onclick="openJMAPage()">🔗 気象庁で詳細を見る</button>
-            <button class="downloadBtn" onclick="downloadTyphoonImage(${i}, '台風${t.number}号_${t.name}')">⬇️ 画像ダウンロード</button>
+    <div class="typhoon-header">台風${t.number}号 ${t.name}</div>
+    
+    <div class="typhoon-content">
+        <div class="image-section">
+            <canvas id="typhoon-canvas-${i}" style="max-width:100%; border:1px solid #ddd; border-radius:8px; display:none;"></canvas>
+            <img id="typhoon-img-${i}" 
+                 src="${typhoonImageUrl}" 
+                 alt="台風${t.number}号進路図"
+                 onerror="handleImageError(${i})">
+            
+            <div class="button-group">
+                <button class="downloadBtn" onclick="downloadImage(${i}, '台風${t.number}号_${t.name}')">⬇️ 画像ダウンロード</button>
+                <button class="copyBtn" onclick="copyImageToClipboard(${i})">📋 画像をコピー</button>
+                <button class="openBtn" onclick="openJMAPageForTyphoon(${t.number})">🔗 気象庁で見る</button>
+            </div>
         </div>
+
+        <div class="info-section">${text}</div>
+        
+        <div class="button-group" style="margin-top:10px;">
+            <button class="copyBtn" onclick="copyInfo(${i})">📋 情報をコピー</button>
+        </div>
+
         <div class="jma-link">
-            <a href="https://www.jma.go.jp/bosai/map.html?contents=typhoon" target="_blank" style="color:#0066cc;">
+            <a href="https://www.jma.go.jp/bosai/typhoon/" target="_blank">
                 気象庁 台風情報ページ →
             </a>
         </div>
     </div>
-    <div class="copy-wrap">
-        <button class="copyBtn" onclick="copyInfo(${i})">📋 コピー</button>
-    </div>
-    <div class="result" id="typhoon-${i}">${escaped}</div>
 </div>`;
             }).join("");
 
@@ -460,13 +514,23 @@ async function getTyphoonInfo() {
         console.error(error);
 
         result.innerHTML =
-            `<div class="result">データ取得に失敗しました
-
-GitHub Pagesでは
-気象庁XMLのCORS制限により
-取得できない場合があります。</div>`;
+            `<div class="typhoon-item">
+                <div class="typhoon-header">エラー</div>
+                <div class="typhoon-content">
+                    <div class="image-error">データ取得に失敗しました。
+                    
+GitHub Pagesでは気象庁XMLのCORS制限により取得できない場合があります。</div>
+                </div>
+            </div>`;
 
         status.textContent = "取得失敗";
+    }
+}
+
+function handleImageError(index) {
+    const img = document.getElementById(`typhoon-img-${index}`);
+    if (img) {
+        img.outerHTML = '<div class="image-error">進路図の読み込みに失敗しました。気象庁ページをご確認ください。</div>';
     }
 }
 
@@ -483,7 +547,7 @@ async function copyInfo(index) {
             document.getElementById("status");
 
         status.textContent =
-            "✅ コピーしました";
+            "✅ テキストをコピーしました";
 
         setTimeout(() => {
 
@@ -499,8 +563,8 @@ async function copyInfo(index) {
     }
 }
 
-function downloadTyphoonImage(index, filename) {
-    const img = document.querySelector(`.typhoon-item:nth-child(${index + 2}) img`);
+function downloadImage(index, filename) {
+    const img = document.getElementById(`typhoon-img-${index}`);
     if (!img || !img.src) {
         alert("画像が読み込まれていません");
         return;
@@ -508,12 +572,44 @@ function downloadTyphoonImage(index, filename) {
 
     const link = document.createElement('a');
     link.href = img.src;
-    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.jpg`;
+    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.png`;
     link.click();
 }
 
-function openJMAPage() {
-    window.open('https://www.jma.go.jp/bosai/map.html?contents=typhoon', '_blank');
+async function copyImageToClipboard(index) {
+    const img = document.getElementById(`typhoon-img-${index}`);
+    if (!img || !img.src) {
+        alert("画像が読み込まれていません");
+        return;
+    }
+
+    try {
+        const response = await fetch(img.src);
+        const blob = await response.blob();
+
+        await navigator.clipboard.write([
+            new ClipboardItem({
+                'image/png': blob
+            })
+        ]);
+
+        const status = document.getElementById("status");
+        status.textContent = "✅ 画像をコピーしました";
+
+        setTimeout(() => {
+            status.textContent =
+                "最終更新: " +
+                new Date().toLocaleString("ja-JP");
+        }, 2000);
+
+    } catch(error) {
+        console.error('画像コピーエラー:', error);
+        alert("画像のコピーに失敗しました。ブラウザがこの機能に対応していない可能性があります。");
+    }
+}
+
+function openJMAPageForTyphoon(typhoonNumber) {
+    window.open(`https://www.jma.go.jp/bosai/typhoon/`, '_blank');
 }
 
 getTyphoonInfo();
