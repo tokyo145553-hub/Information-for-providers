@@ -202,5 +202,49 @@ async function getTatsumakiInfo() {
             <div class="report-card" id="${cardId}">
                 <h3>${areaName}気象防災速報（竜巻注意） 第${reportNo}号</h3>
                 <div class="copy-content">
-                    <p>${date`*
-
+                    <p>${dateStr} 気象庁発表</p>
+                    <p>${bodyText}</p>
+                    <p><b>有効期限: ${validStr} まで</b></p>
+                </div>
+                <button class="copy-btn" onclick="copySingleInfo('${cardId}')">📋 この情報をコピー</button>
+            </div>`;
+        }
+
+        resultDiv.innerHTML = htmlOutput;
+        status.textContent = "最終更新: " + new Date().toLocaleString("ja-JP");
+
+    } catch (e) {
+        resultDiv.innerHTML = `<p>エラーが発生しました: ${e.message}</p>`;
+        status.textContent = "取得失敗";
+    }
+}
+
+// 一件ずつコピーする関数
+function copySingleInfo(cardId) {
+    const card = document.getElementById(cardId);
+    const content = card.querySelector(".copy-content").innerText;
+    const title = card.querySelector("h3").innerText;
+    const fullText = `【${title}】\n${content}`;
+
+    navigator.clipboard.writeText(fullText).then(() => {
+        alert("コピーしました：\n" + title);
+    }).catch(() => {
+        alert("コピーに失敗しました");
+    });
+}
+
+// index.htmlのテーマ設定と同期
+(function(){
+    const root = document.documentElement;
+    const saved = localStorage.getItem('siteTheme');
+    if (saved === 'dark' || saved === 'light') {
+        root.setAttribute('data-theme', saved);
+    } else {
+        root.removeAttribute('data-theme');
+    }
+})();
+
+getTatsumakiInfo();
+</script>
+</body>
+</html>
