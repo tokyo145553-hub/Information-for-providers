@@ -502,11 +502,17 @@ let logoClickCount = 0;
 let logoTimer;
 document.getElementById("secretLogo").addEventListener("click", () => {
     logoClickCount++;
+
     if (logoClickCount >= 1) {
-        alert("TokyoEastBranch Xへ移動します");
-        window.location.href = "https://x.com/tokyoeast004021";
+        const ok = confirm("TokyoEastBranch Xへ移動しますか？");
+
+        if (ok) {
+            window.location.href = "https://x.com/tokyoeast004021";
+        }
+
         logoClickCount = 0;
     }
+
     clearTimeout(logoTimer);
     logoTimer = setTimeout(() => {
         logoClickCount = 0;
