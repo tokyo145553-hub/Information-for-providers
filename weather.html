@@ -5,265 +5,67 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>気象警報</title>
 <style>
-    :root {
-        --bg-color: #0b0f16;
-        --card-bg: #0f1720;
-        --text-color: #e6eef8;
-        --button-bg: #003b80;
-        --button-hover: #005acc;
-        --button-success-bg: #28a745;
-        --button-success-hover: #218838;
-        --button-secondary-bg: #e9ecef;
-        --button-secondary-text: #495057;
-        --button-secondary-hover: #dee2e6;
-        --border-color: #333;
-        --select-bg: #0f1720;
-        --select-text: #e6eef8;
-        --update-time-color: #a0a8b8;
-        --shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
-
-    :root[data-theme="light"] {
-        --bg-color: #f5f5f5;
-        --card-bg: #ffffff;
-        --text-color: #333;
-        --button-bg: #0066cc;
-        --button-hover: #0055aa;
-        --button-success-bg: #28a745;
-        --button-success-hover: #218838;
-        --button-secondary-bg: #e9ecef;
-        --button-secondary-text: #495057;
-        --button-secondary-hover: #dee2e6;
-        --border-color: #ccc;
-        --select-bg: #ffffff;
-        --select-text: #333;
-        --update-time-color: #666;
-        --shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    @media (prefers-color-scheme: light) {
-        :root:not([data-theme="dark"]) {
-            --bg-color: #f5f5f5;
-            --card-bg: #ffffff;
-            --text-color: #333;
-            --button-bg: #0066cc;
-            --button-hover: #0055aa;
-            --button-success-bg: #28a745;
-            --button-success-hover: #218838;
-            --button-secondary-bg: #e9ecef;
-            --button-secondary-text: #495057;
-            --button-secondary-hover: #dee2e6;
-            --border-color: #ccc;
-            --select-bg: #ffffff;
-            --select-text: #333;
-            --update-time-color: #666;
-            --shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-    }
-
-    * { transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease; }
-
-    body { 
-        font-family: sans-serif; 
-        max-width: 900px; 
-        margin: 40px auto; 
-        padding: 20px; 
-        background: var(--bg-color);
-        color: var(--text-color);
-    }
-
-    /* ボタンの共通スタイル */
-    .btn {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: background 0.2s;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    /* コピーボタン専用 */
-    #copyBtn {
-        background: var(--button-success-bg);
-        color: white;
-        width: 100%;
-        justify-content: center;
-        font-size: 16px;
-        margin-bottom: 15px;
-    }
-    #copyBtn:hover { background: var(--button-success-hover); }
-
-    /* 戻る・更新ボタンのスタイル */
-    .nav-buttons {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
-    }
-    .btn-secondary {
-        background: var(--button-secondary-bg);
-        color: var(--button-secondary-text);
-        flex: 1;
-        justify-content: center;
-        transition: background 0.2s;
-    }
-    .btn-secondary:hover { background: var(--button-secondary-hover); }
-
-    #areaSelect {
-        display: block;
-        width: 80%;
-        margin: 0 auto 15px auto;
-        padding: 10px;
-        font-size: 16px;
-        border-radius: 5px;
-        background: var(--select-bg);
-        color: var(--select-text);
-        border: 1px solid var(--border-color);
-    }
-
-    .radio-group { 
-        display: flex; 
-        justify-content: center; 
-        gap: 15px; 
-        margin-top: 10px;
-    }
-
-    .radio-group label {
-        color: var(--text-color);
-    }
-
-    #eew {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
-        padding: 20px;
-        line-height: 1.6;
-        box-shadow: var(--shadow);
-        white-space: pre-wrap;
-        word-break: break-all;
-        color: var(--text-color);
-    }
-
-    #updateTime {
-        color: var(--update-time-color);
-        text-align: center;
-        margin-bottom: 10px;
-        font-size: 14px;
-    }
-
-    #xmlStatus {
-        color: var(--update-time-color);
-        text-align: center;
-        margin-bottom: 10px;
-        font-size: 12px;
-    }
+:root {
+  --bg-color:#0b0f16; --card-bg:#0f1720; --text-color:#e6eef8; --button-bg:#003b80; --button-hover:#005acc;
+  --button-success-bg:#28a745; --button-success-hover:#218838; --button-secondary-bg:#e9ecef;
+  --button-secondary-text:#495057; --button-secondary-hover:#dee2e6; --border-color:#333;
+  --select-bg:#0f1720; --select-text:#e6eef8; --update-time-color:#a0a8b8; --shadow:0 2px 5px rgba(0,0,0,0.3);
+}
+:root[data-theme="light"] {
+  --bg-color:#f5f5f5; --card-bg:#ffffff; --text-color:#333; --button-bg:#0066cc; --button-hover:#0055aa;
+  --border-color:#ccc; --select-bg:#ffffff; --select-text:#333; --update-time-color:#666; --shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg-color:#f5f5f5; --card-bg:#ffffff; --text-color:#333; --button-bg:#0066cc; --button-hover:#0055aa;
+    --border-color:#ccc; --select-bg:#ffffff; --select-text:#333; --update-time-color:#666; --shadow:0 2px 5px rgba(0,0,0,0.1);
+  }
+}
+* { transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease; }
+body { font-family:sans-serif; max-width:900px; margin:40px auto; padding:20px; background:var(--bg-color); color:var(--text-color); }
+.btn { padding:10px 20px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; transition:background 0.2s; display:inline-flex; align-items:center; gap:8px; }
+#copyBtn { background:var(--button-success-bg); color:white; width:100%; justify-content:center; font-size:16px; margin-bottom:15px; }
+#copyBtn:hover { background:var(--button-success-hover); }
+.nav-buttons { display:flex; gap:10px; margin-bottom:15px; }
+.btn-secondary { background:var(--button-secondary-bg); color:var(--button-secondary-text); flex:1; justify-content:center; transition:background 0.2s; }
+.btn-secondary:hover { background:var(--button-secondary-hover); }
+#areaSelect { display:block; width:80%; margin:0 auto 15px auto; padding:10px; font-size:16px; border-radius:5px; background:var(--select-bg); color:var(--select-text); border:1px solid var(--border-color); }
+.radio-group { display:flex; justify-content:center; gap:15px; margin-top:10px; }
+.radio-group label { color:var(--text-color); }
+#eew { background:var(--card-bg); border:1px solid var(--border-color); border-radius:10px; padding:20px; line-height:1.6; box-shadow:var(--shadow); white-space:pre-wrap; word-break:break-all; color:var(--text-color); }
+#updateTime { color:var(--update-time-color); text-align:center; margin-bottom:10px; font-size:14px; }
+#xmlStatus { color:var(--update-time-color); text-align:center; margin-bottom:10px; font-size:12px; }
 </style>
 </head>
 <body>
 <div class="controls">
-    <div class="nav-buttons">
-        <a href="index.html" class="btn btn-secondary" style="text-decoration:none;">← 戻る</a>
-        <button id="refreshBtn" class="btn btn-secondary">更新</button>
-    </div>
-
-    <button id="copyBtn" class="btn">
-        <span>📋</span> 本文をコピー
-    </button>
-    
-    <div id="updateTime">取得日時: ----/--/-- --:--:--</div>
-    <div id="xmlStatus">XML: 未取得</div>
+  <div class="nav-buttons">
+    <a href="index.html" class="btn btn-secondary" style="text-decoration:none;">← 戻る</a>
+    <button id="refreshBtn" class="btn btn-secondary">更新</button>
+  </div>
+  <button id="copyBtn" class="btn"><span>📋</span> 本文をコピー</button>
+  <div id="updateTime">取得日時: ----/--/-- --:--:--</div>
+  <div id="xmlStatus">XML: 未取得</div>
 </div>
 <select id="areaSelect">
   <option selected>全国</option>
-  <optgroup label="北海道地方">
-    <option>石狩・空知・後志地方</option>
-    <option>宗谷地方</option>
-    <option>上川・留萌地方</option>
-    <option>網走・北見・紋別地方</option>
-    <option>十勝地方</option>
-    <option>釧路・根室地方</option>
-    <option>胆振・日高地方</option>
-    <option>渡島・檜山地方</option>
-  </optgroup>
-  <optgroup label="東北地方">
-    <option>青森県</option>
-    <option>岩手県</option>
-    <option>宮城県</option>
-    <option>秋田県</option>
-    <option>山形県</option>
-    <option>福島県</option>
-  </optgroup>
-  <optgroup label="関東甲信地方">
-    <option>茨城県</option>
-    <option>栃木県</option>
-    <option>群馬県</option>
-    <option>埼玉県</option>
-    <option>千葉県</option>
-    <option>東京都</option>
-    <option>神奈川県</option>
-    <option>山梨県</option>
-    <option>長野県</option>
-  </optgroup>
-  <optgroup label="東海地方">
-    <option>岐阜県</option>
-    <option>静岡県</option>
-    <option>愛知県</option>
-    <option>三重県</option>
-  </optgroup>
-  <optgroup label="北陸地方">
-    <option>新潟県</option>
-    <option>富山県</option>
-    <option>石川県</option>
-    <option>福井県</option>
-  </optgroup>
-  <optgroup label="近畿地方">
-    <option>滋賀県</option>
-    <option>京都府</option>
-    <option>大阪府</option>
-    <option>兵庫県</option>
-    <option>奈良県</option>
-    <option>和歌山県</option>
-  </optgroup>
-  <optgroup label="中国地方">
-    <option>鳥取県</option>
-    <option>島根県</option>
-    <option>岡山県</option>
-    <option>広島県</option>
-    <option>山口県</option>
-  </optgroup>
-  <optgroup label="四国地方">
-    <option>徳島県</option>
-    <option>香川県</option>
-    <option>愛媛県</option>
-    <option>高知県</option>
-  </optgroup>
-  <optgroup label="九州北部地方（山口県を含む）">
-    <option>山口県</option>
-    <option>福岡県</option>
-    <option>佐賀県</option>
-    <option>長崎県</option>
-    <option>熊本県</option>
-    <option>大分県</option>
-  </optgroup>
-  <optgroup label="九州南部・奄美地方">
-    <option>宮崎県</option>
-    <option>鹿児島県（奄美地方を除く）</option>
-    <option>奄美地方（鹿児島県）</option>
-  </optgroup>
-  <optgroup label="沖縄地方">
-    <option>沖縄本島地方</option>
-    <option>大東島地方</option>
-    <option>宮古島地方</option>
-    <option>八重山地方</option>
-  </optgroup>
+  <optgroup label="北海道地方"><option>石狩・空知・後志地方</option><option>宗谷地方</option><option>上川・留萌地方</option><option>網走・北見・紋別地方</option><option>十勝地方</option><option>釧路・根室地方</option><option>胆振・日高地方</option><option>渡島・檜山地方</option></optgroup>
+  <optgroup label="東北地方"><option>青森県</option><option>岩手県</option><option>宮城県</option><option>秋田県</option><option>山形県</option><option>福島県</option></optgroup>
+  <optgroup label="関東甲信地方"><option>茨城県</option><option>栃木県</option><option>群馬県</option><option>埼玉県</option><option>千葉県</option><option>東京都</option><option>神奈川県</option><option>山梨県</option><option>長野県</option></optgroup>
+  <optgroup label="東海地方"><option>岐阜県</option><option>静岡県</option><option>愛知県</option><option>三重県</option></optgroup>
+  <optgroup label="北陸地方"><option>新潟県</option><option>富山県</option><option>石川県</option><option>福井県</option></optgroup>
+  <optgroup label="近畿地方"><option>滋賀県</option><option>京都府</option><option>大阪府</option><option>兵庫県</option><option>奈良県</option><option>和歌山県</option></optgroup>
+  <optgroup label="中国地方"><option>鳥取県</option><option>島根県</option><option>岡山県</option><option>広島県</option><option>山口県</option></optgroup>
+  <optgroup label="四国地方"><option>徳島県</option><option>香川県</option><option>愛媛県</option><option>高知県</option></optgroup>
+  <optgroup label="九州北部地方（山口県を含む）"><option>山口県</option><option>福岡県</option><option>佐賀県</option><option>長崎県</option><option>熊本県</option><option>大分県</option></optgroup>
+  <optgroup label="九州南部・奄美地方"><option>宮崎県</option><option>鹿児島県（奄美地方を除く）</option><option>奄美地方（鹿児島県）</option></optgroup>
+  <optgroup label="沖縄地方"><option>沖縄本島地方</option><option>大東島地方</option><option>宮古島地方</option><option>八重山地方</option></optgroup>
 </select>
 
 <div class="radio-group">
-    <label><input type="radio" name="mode" value="all"> 全情報</label>
-    <label><input type="radio" name="mode" value="keihou" checked> 警報以上</label>
-    <label><input type="radio" name="mode" value="kiken_keihou"> 危険警報以上</label>
+  <label><input type="radio" name="mode" value="all"> 全情報</label>
+  <label><input type="radio" name="mode" value="keihou" checked> 警報以上</label>
+  <label><input type="radio" name="mode" value="kiken_keihou"> 危険警報以上</label>
 </div>
 
 <pre id="eew">読み込み中...</pre>
@@ -274,64 +76,18 @@ const AREA_JSON_URL = `${JMA_BASE}/common/const/area.json`;
 const WARNING_R8_BASE_URL = `${JMA_BASE}/warning/data/r8`;
 
 const regionCodeByName = {
-  "宗谷地方": "011000",
-  "上川・留萌地方": "012000",
-  "網走・北見・紋別地方": "013000",
-  "十勝地方": "014030",
-  "釧路・根室地方": "014100",
-  "胆振・日高地方": "015000",
-  "石狩・空知・後志地方": "016000",
-  "渡島・檜山地方": "017000",
-  "青森県": "020000",
-  "岩手県": "030000",
-  "宮城県": "040000",
-  "秋田県": "050000",
-  "山形県": "060000",
-  "福島県": "070000",
-  "茨城県": "080000",
-  "栃木県": "090000",
-  "群馬県": "100000",
-  "埼玉県": "110000",
-  "千葉県": "120000",
-  "東京都": "130000",
-  "神奈川県": "140000",
-  "新潟県": "150000",
-  "富山県": "160000",
-  "石川県": "170000",
-  "福井県": "180000",
-  "山梨県": "190000",
-  "長野県": "200000",
-  "岐阜県": "210000",
-  "静岡県": "220000",
-  "愛知県": "230000",
-  "三重県": "240000",
-  "滋賀県": "250000",
-  "京都府": "260000",
-  "大阪府": "270000",
-  "兵庫県": "280000",
-  "奈良県": "290000",
-  "和歌山県": "300000",
-  "鳥取県": "310000",
-  "島根県": "320000",
-  "岡山県": "330000",
-  "広島県": "340000",
-  "山口県": "350000",
-  "徳島県": "360000",
-  "香川県": "370000",
-  "愛媛県": "380000",
-  "高知県": "390000",
-  "福岡県": "400000",
-  "佐賀県": "410000",
-  "長崎県": "420000",
-  "熊本県": "430000",
-  "大分県": "440000",
-  "宮崎県": "450000",
-  "奄美地方（鹿児島県）": "460040",
-  "鹿児島県（奄美地方を除く）": "460100",
-  "沖縄本島地方": "471000",
-  "大東島地方": "472000",
-  "宮古島地方": "473000",
-  "八重山地方": "474000"
+  "宗谷地方":"011000","上川・留萌地方":"012000","網走・北見・紋別地方":"013000","十勝地方":"014030","釧路・根室地方":"014100",
+  "胆振・日高地方":"015000","石狩・空知・後志地方":"016000","渡島・檜山地方":"017000",
+  "青森県":"020000","岩手県":"030000","宮城県":"040000","秋田県":"050000","山形県":"060000","福島県":"070000",
+  "茨城県":"080000","栃木県":"090000","群馬県":"100000","埼玉県":"110000","千葉県":"120000","東京都":"130000","神奈川県":"140000",
+  "新潟県":"150000","富山県":"160000","石川県":"170000","福井県":"180000","山梨県":"190000","長野県":"200000",
+  "岐阜県":"210000","静岡県":"220000","愛知県":"230000","三重県":"240000",
+  "滋賀県":"250000","京都府":"260000","大阪府":"270000","兵庫県":"280000","奈良県":"290000","和歌山県":"300000",
+  "鳥取県":"310000","島根県":"320000","岡山県":"330000","広島県":"340000","山口県":"350000",
+  "徳島県":"360000","香川県":"370000","愛媛県":"380000","高知県":"390000",
+  "福岡県":"400000","佐賀県":"410000","長崎県":"420000","熊本県":"430000","大分県":"440000","宮崎県":"450000",
+  "奄美地方（鹿児島県）":"460040","鹿児島県（奄美地方を除く）":"460100",
+  "沖縄本島地方":"471000","大東島地方":"472000","宮古島地方":"473000","八重山地方":"474000"
 };
 
 let areaDataCache = null;
@@ -339,18 +95,10 @@ let latestUpdateId = 0;
 
 function setNowTime() {
   const now = new Date();
-
-  const YYYY = now.getFullYear();
-  const MM = String(now.getMonth() + 1).padStart(2, '0');
-  const dd = String(now.getDate()).padStart(2, '0');
-  const HH = String(now.getHours()).padStart(2, '0');
-  const mm = String(now.getMinutes()).padStart(2, '0');
-  const ss = String(now.getSeconds()).padStart(2, '0');
-
+  const p = n => String(n).padStart(2, '0');
   document.getElementById("updateTime").textContent =
-    `取得日時: ${YYYY}/${MM}/${dd} ${HH}:${mm}:${ss}`;
+    `取得日時: ${now.getFullYear()}/${p(now.getMonth() + 1)}/${p(now.getDate())} ${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
 }
-
 setNowTime();
 
 async function main(mode=2,taisho_chiiki="全国",statusFormat=false) {
@@ -439,13 +187,13 @@ async function main(mode=2,taisho_chiiki="全国",statusFormat=false) {
       "強風注意報","大雪注意報","風雪注意報","雷注意報","波浪注意報","濃霧注意報","乾燥注意報",
       "融雪注意報","なだれ注意報","低温注意報","霜注意報","着氷注意報","着雪注意報","その他の注意報"
     ];
-    
+
     const sortedWarnNames = [
       ...warnOrder.filter(name => data.warnInfo[name]),
       ...Object.keys(data.warnInfo).filter(name => !warnOrder.includes(name))
     ];
 
-for (const warnName of sortedWarnNames) {
+    for (const warnName of sortedWarnNames) {
       const areas = data.warnInfo[warnName];
       if (Object.keys(areas).length === 0) continue;
 
@@ -470,13 +218,10 @@ for (const warnName of sortedWarnNames) {
 
         if (statusFormat) {
           const statusGroups = data.statusInfo?.[warnName]?.[areaName] || {};
-        
           const orderedStatus = ["発表","特別警報から危険警報","特別警報から警報","危険警報から警報","継続","特別警報から注意報","危険警報から注意報","警報から注意報","解除"];
-        
           for (const status of orderedStatus) {
             const list = statusGroups[status];
             if (!list || list.length === 0) continue;
-        
             block += `\n【${status}】`;
             block += list.join("　");
           }
@@ -546,32 +291,18 @@ async function getCityWarningsByArea(warnArea,taisho_chiiki="全国") {
         const warnName = info.name;
         if (!warnName || !warnByTypeAndArea[warnName]) continue;
 
-        if (!warnByTypeAndArea[warnName][largeAreaName]) {
-          warnByTypeAndArea[warnName][largeAreaName] = [];
-        }
-
-        if (!warnByTypeAndArea[warnName][largeAreaName].includes(cityName)) {
-          warnByTypeAndArea[warnName][largeAreaName].push(cityName);
-        }
+        if (!warnByTypeAndArea[warnName][largeAreaName]) warnByTypeAndArea[warnName][largeAreaName] = [];
+        if (!warnByTypeAndArea[warnName][largeAreaName].includes(cityName)) warnByTypeAndArea[warnName][largeAreaName].push(cityName);
 
         const status = w.status || "発表";
         if (!statusInfo[warnName][largeAreaName]) statusInfo[warnName][largeAreaName] = {};
         if (!statusInfo[warnName][largeAreaName][status]) statusInfo[warnName][largeAreaName][status] = [];
-        if (!statusInfo[warnName][largeAreaName][status].includes(cityName)) {
-          statusInfo[warnName][largeAreaName][status].push(cityName);
-        }
-
-        }
+        if (!statusInfo[warnName][largeAreaName][status].includes(cityName)) statusInfo[warnName][largeAreaName][status].push(cityName);
       }
     }
+  }
 
-  const warnData = {
-    "reportDatetime": reportDatetime,
-    "publishingOffice": publishingOffice,
-    "warnInfo": warnByTypeAndArea,
-    "statusInfo": statusInfo
-  };
-
+  const warnData = { "reportDatetime": reportDatetime, "publishingOffice": publishingOffice, "warnInfo": warnByTypeAndArea, "statusInfo": statusInfo };
   return {warnData,regionReportDT};
 }
 
@@ -611,9 +342,8 @@ function getRegionName(regionCode) {
 //
 // 更新のたびに、bosai の R8 JSON と XMLフィードを同時に取得する。
 // XML(警報・注意報 VPWW55〜60)の方がJSONより新しい場合だけ、
-// JSONのレポートをXMLの内容で上書き(オーバーレイ)してから
-// 本文生成に渡す。JSONがXMLの電文時刻に追いついたら、
-// そのオーバーレイは自動的に破棄される。
+// 市町村×現象ごとにJSONのレポートをXMLの内容で上書き(オーバーレイ)してから
+// 本文生成に渡す。JSONが追いついたら、そのオーバーレイは自動的に破棄される。
 // 対象外の現象(洪水・雷・その他注意報など)は従来どおりJSONの内容。
 // ================================================================
 const XML_FEED_URL = "https://www.data.jma.go.jp/developer/xml/feed/extra.xml";
@@ -622,7 +352,7 @@ const XML_MUNICIPALITY_WARNING_TYPE = "気象警報・注意報（市町村等�
 const XML_FETCH_PARALLEL = 6;                 // 電文の同時取得数
 const XML_OVERLAY_TTL_MS = 30 * 60 * 1000;    // 万一JSONが追いつかない場合の保険
 
-// 電文種別 → その電文が「状態を丸ごと置き換える」対象の現象
+// 電文種別 → その電文が扱う現象(Kindから特定できないときの既定)
 const XML_DOC_COVERS = {
   "55": ["大雨"], "56": ["土砂災害"], "57": ["高潮"],
   "58": ["暴風", "暴風雪"], "59": ["波浪"], "60": ["大雪"]
@@ -703,6 +433,10 @@ function xmlResolveKind(kindEl) {
 }
 
 // 警報XML(VPWW55〜60)1通を解析して、市町村ごとの警報コードにする
+// 戻り値 cities[市町村コード] = { kinds:[{code,status}], touched:Set<現象> }
+//   touched = その市町村について電文が「状態を述べている」現象。
+//   Kind から特定できない場合(LastKindなしの解除など)だけ、電文種別の既定の現象にする。
+//   → 暴風(58)の解除電文が、載っていない暴風雪まで消してしまう問題を防ぐ。
 function parseWarningXmlDoc(xmlText, url) {
   const m = url.match(XML_DOC_URL_RE);
   if (!m) return null;
@@ -726,49 +460,71 @@ function parseWarningXmlDoc(xmlText, url) {
   const warning = warnings.find(w => w.getAttribute("type") === XML_MUNICIPALITY_WARNING_TYPE);
   if (!warning) return null;
 
-  const covers = new Set(XML_DOC_COVERS[typeNo] || []);
+  const defaults = XML_DOC_COVERS[typeNo] || [];
   const cities = {};
   for (const item of xmlKids(warning, "Item")) {
     const areaEl = xmlKid(item, "Area") || item.getElementsByTagNameNS("*", "Area")[0] || null;
     const cityCode = areaEl ? (xmlKidText(areaEl, "Code") || (areaEl.getElementsByTagNameNS("*", "Code")[0]?.textContent || "").trim()) : "";
     if (!cityCode) continue;
-    const list = cities[cityCode] || (cities[cityCode] = []);
+    const c = cities[cityCode] || (cities[cityCode] = { kinds: [], touched: new Set() });
     let kindEls = xmlKids(item, "Kind");
     if (kindEls.length === 0) kindEls = Array.from(item.getElementsByTagNameNS("*", "Kind"));
     for (const kindEl of kindEls) {
       const r = xmlResolveKind(kindEl);
-      r.touched.forEach(p => covers.add(p));
-      if (r.code) list.push({ code: r.code, status: r.status });
+      r.touched.forEach(p => c.touched.add(p));
+      if (r.code) c.kinds.push({ code: r.code, status: r.status });
     }
   }
-  return { typeNo, office, reportDateTime, reportMs, covers: Array.from(covers), cities };
+  for (const c of Object.values(cities)) {
+    if (c.touched.size === 0) defaults.forEach(p => c.touched.add(p));
+  }
+  return { typeNo, office, reportDateTime, reportMs, cities };
 }
 
-// オーバーレイ: 府県予報区コード → 現象 → { reportMs, receivedAt, cities }
+// オーバーレイ: 府県予報区コード → 現象 → 市町村コード → { reportMs, receivedAt, kinds }
+// 電文時刻は「市町村 × 現象」ごとに持つ。
+// → 古い電文が後着しても、より新しい電文が触れていない市町村の変化は取りこぼさない。
 const xmlOverlay = {};
+
+function phenCodeSet(phen) {
+  return new Set(Object.values(PHENOMENON_CODES[phen] || {}));
+}
 
 function mergeXmlDocIntoOverlay(parsed) {
   let merged = false;
   const byPhen = xmlOverlay[parsed.office] || (xmlOverlay[parsed.office] = {});
-  for (const phen of parsed.covers) {
-    const codesOfPhen = new Set(Object.values(PHENOMENON_CODES[phen] || {}));
-    if (codesOfPhen.size === 0) continue;
-    let ent = byPhen[phen];
-    if (ent && ent.reportMs > parsed.reportMs) continue; // より新しい電文が既にある
-    if (!ent) ent = byPhen[phen] = { reportMs: 0, receivedAt: Date.now(), cities: {} };
-    ent.reportMs = parsed.reportMs;
-    ent.receivedAt = Date.now();
-    // その電文に載っている市町村は、この現象の状態を電文の内容で置き換える
-    // (載っていない現象＝警報・注意報なし/解除 なので空配列になる)
-    for (const [cityCode, kinds] of Object.entries(parsed.cities)) {
-      ent.cities[cityCode] = kinds.filter(k => codesOfPhen.has(k.code));
+  for (const [cityCode, c] of Object.entries(parsed.cities)) {
+    for (const phen of c.touched) {
+      const codes = phenCodeSet(phen);
+      if (codes.size === 0) continue;
+      const ents = byPhen[phen] || (byPhen[phen] = {});
+      const cur = ents[cityCode];
+      if (cur && cur.reportMs > parsed.reportMs) continue; // この市町村・現象には、より新しい電文が既にある
+      ents[cityCode] = {
+        reportMs: parsed.reportMs,
+        receivedAt: Date.now(),
+        kinds: c.kinds.filter(k => codes.has(k.code))
+      };
+      merged = true;
     }
-    merged = true;
   }
   return merged;
 }
 
+// JSON側の市町村項目が、ある現象について持っている有効なコード集合
+function xmlActiveCodes(item, codes) {
+  const s = new Set();
+  for (const k of (item?.kinds || [])) {
+    if (codes.has(k.code) && k.status !== "解除") s.add(k.code);
+  }
+  return s;
+}
+
 // fetchR8WarningData の結果(JSONレポートの配列)へオーバーレイを反映する
+// JSONが追いついたかどうかは「市町村 × 現象」ごとに判定する。
+//   ・JSONの発表時刻がXMLより新しい、または
+//   ・JSONの内容がXMLの内容と一致している(同時刻の別電文を片方だけ反映済み、を区別できる)
+// または同時刻でJSONがその現象を既に載せているときだけ、オーバーレイを破棄する。
 function applyXmlOverlayToReports(reports) {
   const byOffice = new Map();
   for (const r of reports) {
@@ -783,31 +539,43 @@ function applyXmlOverlayToReports(reports) {
     if (!byPhen) continue;
 
     const jsonMs = Math.max(0, ...list.map(r => Date.parse(r.reportDatetime)).filter(Number.isFinite));
+    const index = new Map();
+    for (const r of list) {
+      for (const it of (r.warning.class20Items || [])) index.set(it.areaCode, it);
+    }
     let newestMs = 0;
 
-    for (const [phen, ent] of Object.entries(byPhen)) {
-      if (jsonMs >= ent.reportMs) { delete byPhen[phen]; continue; }          // JSONが追いついた
-      if (Date.now() - ent.receivedAt > XML_OVERLAY_TTL_MS) { delete byPhen[phen]; continue; }
-
-      const codesOfPhen = new Set(Object.values(PHENOMENON_CODES[phen] || {}));
-      const index = new Map();
-      for (const r of list) {
-        for (const it of (r.warning.class20Items || [])) index.set(it.areaCode, it);
-      }
-      for (const [cityCode, kinds] of Object.entries(ent.cities)) {
+    for (const [phen, ents] of Object.entries(byPhen)) {
+      const codes = phenCodeSet(phen);
+      for (const [cityCode, ent] of Object.entries(ents)) {
         let it = index.get(cityCode);
+        const want = new Set(ent.kinds.map(k => k.code));
+        const have = xmlActiveCodes(it, codes);
+        const same = want.size === have.size && [...want].every(c => have.has(c));
+        const expired = Date.now() - ent.receivedAt > XML_OVERLAY_TTL_MS;
+
+        // JSONが追いついたか: 内容が一致 / JSONの方が新しい / 同時刻でJSONがその現象を既に載せている
+        // (同時刻でJSONにその現象が無い場合は、別電文の反映待ちとみなしてXMLを使い続ける)
+        const caught = same || jsonMs > ent.reportMs || (jsonMs === ent.reportMs && have.size > 0);
+        if (caught || expired) {
+          if (caught) console.info(`[XML高速化] JSON追従: ${office} ${phen} ${cityCode} (電文発表から約${Math.round((Date.now() - ent.reportMs) / 1000)}秒)`);
+          delete ents[cityCode];
+          continue;
+        }
+
         if (!it) {
-          if (kinds.length === 0) continue;
+          if (ent.kinds.length === 0) continue;
           it = { areaCode: cityCode, kinds: [] };
           if (!list[0].warning.class20Items) list[0].warning.class20Items = [];
           list[0].warning.class20Items.push(it);
           index.set(cityCode, it);
         }
         it.kinds = (it.kinds || [])
-          .filter(k => !codesOfPhen.has(k.code))
-          .concat(kinds.map(k => ({ ...k })));
+          .filter(k => !codes.has(k.code))
+          .concat(ent.kinds.map(k => ({ ...k })));
+        newestMs = Math.max(newestMs, ent.reportMs);
       }
-      newestMs = Math.max(newestMs, ent.reportMs);
+      if (Object.keys(ents).length === 0) delete byPhen[phen];
     }
 
     if (newestMs > 0) {
@@ -845,8 +613,7 @@ async function xmlFetchText(url, isFeed) {
   return await res.text();
 }
 
-// 1回分のフィード確認。更新ボタンの連打などで重複実行しないよう、
-// 実行中は同じPromiseを共有する。
+// 1回分のフィード確認。更新ボタンの連打などで重複実行しないよう、実行中は同じPromiseを共有する。
 const xmlSeenUrls = new Set();
 let xmlRefreshPromise = null;
 
@@ -921,11 +688,73 @@ function getWarnColor(level) {
   }
 }
 
+// ================================================================
+// 診断用(コンソールから xmlSelfTest() / xmlDebug() で実行)
+// ================================================================
+function xmlDebug() {
+  const rows = [];
+  for (const [o, byPhen] of Object.entries(xmlOverlay))
+    for (const [p, ents] of Object.entries(byPhen))
+      for (const [c, e] of Object.entries(ents))
+        rows.push({ 府県予報区: o, 現象: p, 市町村: c, 電文時刻: toJstIso(e.reportMs), 内容: e.kinds.map(k => k.code).join(",") || "なし" });
+  if (rows.length) console.table(rows);
+  else console.log("[XML診断] 今、JSONより先行しているXMLはありません");
+  return rows;
+}
+
+function xmlSelfTest() {
+  const NAMES = { "02": "暴風雪警報", "03": "大雨警報", "05": "暴風警報", "09": "土砂災害警報", "10": "大雨注意報" };
+  const T = m => `2026-01-01T00:${String(m).padStart(2, "0")}:00+09:00`;
+  const K = (n, s = "発表", l = "") =>
+    `<Kind><Status>${s}</Status><Name>${n}</Name>${l ? `<LastKind><Name>${l}</Name></LastKind>` : ""}</Kind>`;
+  const doc = (no, min, items) => ({
+    url: `x/20260101000000_0_VPWW${no}_999999.xml`,
+    text: `<Report><Control><Status>通常</Status></Control><Head><InfoType>発表</InfoType><ReportDateTime>${T(min)}</ReportDateTime></Head><Body><Warning type="${XML_MUNICIPALITY_WARNING_TYPE}">` +
+      Object.entries(items).map(([c, ks]) => `<Item><Area><Code>${c}</Code></Area>${ks.join("")}</Item>`).join("") +
+      `</Warning></Body></Report>`
+  });
+  const J = (min, items) => ({ min, items: Object.entries(items).map(([c, cs]) => ({ areaCode: c, kinds: cs.map(code => ({ code, status: "発表" })) })) });
+
+  const cases = [
+    ["引き下げ", "警報→注意報", [doc("55", 10, { A: [K("大雨注意報")] })], J(5, { A: ["03"] }), { A: "大雨注意報" }],
+    ["解除", "大雨警報の解除", [doc("55", 10, { A: [K("解除", "解除", "大雨警報")] })], J(5, { A: ["03"] }), { A: "なし" }],
+    ["旧弱点", "同時刻の別電文(55/56)をJSONが片方だけ反映済み",
+      [doc("55", 10, { A: [K("大雨警報")] }), doc("56", 10, { A: [K("土砂災害警報")] })], J(10, { A: ["03"] }), { A: "大雨警報+土砂災害警報" }],
+    ["旧弱点", "暴風の解除電文に暴風雪が載らない(58)",
+      [doc("58", 10, { A: [K("解除", "解除", "暴風警報")] })], J(5, { A: ["05", "02"] }), { A: "暴風雪警報" }],
+    ["旧弱点", "古い電文が後着→他の市町村の変化を落とさない",
+      [doc("55", 20, { B: [K("大雨警報")] }), doc("55", 10, { A: [K("大雨警報")] })], J(5, {}), { A: "大雨警報", B: "大雨警報" }],
+    ["追従", "JSONが後の時刻ならJSONを使う",
+      [doc("55", 10, { A: [K("大雨警報")] })], J(15, { A: ["10"] }), { A: "大雨注意報" }]
+  ];
+
+  const rows = []; let ok = 0, ng = 0;
+  for (const [cat, name, docs, json, expect] of cases) {
+    for (const k of Object.keys(xmlOverlay)) delete xmlOverlay[k];
+    for (const d of docs) { const p = parseWarningXmlDoc(d.text, d.url); if (p) mergeXmlDocIntoOverlay(p); }
+    const reports = [{ regionCode: "999999", reportDatetime: T(json.min), warning: { class20Items: json.items } }];
+    applyXmlOverlayToReports(reports);
+    const items = reports[0].warning.class20Items;
+    const get = c => (items.find(i => i.areaCode === c)?.kinds || [])
+      .filter(k => k.status !== "解除").map(k => k.code).sort().map(x => NAMES[x] || x).join("+") || "なし";
+    const actual = {}; Object.keys(expect).forEach(c => actual[c] = get(c));
+    const pass = JSON.stringify(actual) === JSON.stringify(expect);
+    pass ? ok++ : ng++;
+    rows.push({ 分類: cat, ケース: name, 結果: pass ? "✅ OK" : "❌ NG", 実際: JSON.stringify(actual), 期待: JSON.stringify(expect) });
+  }
+  for (const k of Object.keys(xmlOverlay)) delete xmlOverlay[k];
+  console.table(rows);
+  console.log(`OK ${ok} / NG ${ng}`);
+  return { ok, ng };
+}
+// コンソールの実行コンテキストが親ページ(top)側でも呼べるように公開する
+try { for (const w of [window.parent, window.top]) if (w && w !== window) { w.xmlSelfTest = xmlSelfTest; w.xmlDebug = xmlDebug; } } catch (e) {}
+console.info("[XML診断] 準備完了: xmlSelfTest() で自己診断 / xmlDebug() で先行中のXML一覧");
+
 window.addEventListener("load", update);
 
 document.getElementById("copyBtn").addEventListener("click", async () => {
   const text = document.getElementById("eew").textContent;
-
   try {
     await navigator.clipboard.writeText(text);
     alert("コピー完了");
@@ -935,9 +764,7 @@ document.getElementById("copyBtn").addEventListener("click", async () => {
 });
 
 // ラジオ
-document.querySelectorAll('input[name="mode"]').forEach(radio => {
-  radio.addEventListener("change", update);
-});
+document.querySelectorAll('input[name="mode"]').forEach(radio => radio.addEventListener("change", update));
 
 // セレクト
 document.getElementById("areaSelect").addEventListener("change", update);
@@ -945,18 +772,14 @@ document.getElementById("areaSelect").addEventListener("change", update);
 function update() {
   try {
     setNowTime();
-  
     // レベル取得
     const value = document.querySelector('input[name="mode"]:checked').value;
     let mode;
     if (value === "all") mode = 2;
     else if (value === "keihou") mode = 3;
     else if (value === "kiken_keihou") mode = 4;
-  
     // 地域取得
-    const area = document.getElementById("areaSelect")
-      .selectedOptions[0].textContent.trim();
-  
+    const area = document.getElementById("areaSelect").selectedOptions[0].textContent.trim();
     // まとめて渡す
     main(mode, area);
   } catch(e) {
@@ -966,10 +789,7 @@ function update() {
 
 document.addEventListener("click", (e) => {
   const select = document.getElementById("areaSelect");
-
-  if (!select.contains(e.target)) {
-    select.blur();
-  }
+  if (!select.contains(e.target)) select.blur();
 });
 
 // 更新ボタンの動作設定
@@ -977,13 +797,10 @@ document.getElementById("refreshBtn").addEventListener("click", update);
 
 // index.htmlのテーマ設定と同期
 (function(){
-    const root = document.documentElement;
-    const saved = localStorage.getItem('siteTheme');
-    if (saved === 'dark' || saved === 'light') {
-        root.setAttribute('data-theme', saved);
-    } else {
-        root.removeAttribute('data-theme');
-    }
+  const root = document.documentElement;
+  const saved = localStorage.getItem('siteTheme');
+  if (saved === 'dark' || saved === 'light') root.setAttribute('data-theme', saved);
+  else root.removeAttribute('data-theme');
 })();
 </script>
 
