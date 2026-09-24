@@ -152,6 +152,13 @@
         margin-bottom: 10px;
         font-size: 14px;
     }
+
+    #xmlStatus {
+        color: var(--update-time-color);
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 12px;
+    }
 </style>
 </head>
 <body>
@@ -166,6 +173,7 @@
     </button>
     
     <div id="updateTime">取得日時: ----/--/-- --:--:--</div>
+    <div id="xmlStatus">XML: 未取得</div>
 </div>
 <select id="areaSelect">
   <option selected>全国</option>
@@ -598,21 +606,309 @@ function getRegionName(regionCode) {
   return regionCode;
 }
 
-async function fetchR8WarningData(regionCodes) {
-  const results = await Promise.all(regionCodes.map(async regionCode => {
-    const url = `${WARNING_R8_BASE_URL}/${regionCode}.json`;
-    try {
-      const res = await fetch(url, {cache:"no-store"});
-      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-      const reports = await res.json();
-      return reports.map(report => ({...report, regionCode}));
-    } catch(e) {
-      console.warn(`警報JSON取得失敗: ${url}`, e);
-      return [];
-    }
-  }));
+// ================================================================
+// 気象庁防災情報XML(随時フィード extra.xml)の解析
+//
+// 更新のたびに、bosai の R8 JSON と XMLフィードを同時に取得する。
+// XML(警報・注意報 VPWW55〜60)の方がJSONより新しい場合だけ、
+// JSONのレポートをXMLの内容で上書き(オーバーレイ)してから
+// 本文生成に渡す。JSONがXMLの電文時刻に追いついたら、
+// そのオーバーレイは自動的に破棄される。
+// 対象外の現象(洪水・雷・その他注意報など)は従来どおりJSONの内容。
+// ================================================================
+const XML_FEED_URL = "https://www.data.jma.go.jp/developer/xml/feed/extra.xml";
+const XML_DOC_URL_RE = /_VPWW(55|56|57|58|59|60)_(\d{6})\.xml$/i;
+const XML_MUNICIPALITY_WARNING_TYPE = "気象警報・注意報（市町村等）";
+const XML_FETCH_PARALLEL = 6;                 // 電文の同時取得数
+const XML_OVERLAY_TTL_MS = 30 * 60 * 1000;    // 万一JSONが追いつかない場合の保険
 
-  return results.flat();
+// 電文種別 → その電文が「状態を丸ごと置き換える」対象の現象
+const XML_DOC_COVERS = {
+  "55": ["大雨"], "56": ["土砂災害"], "57": ["高潮"],
+  "58": ["暴風", "暴風雪"], "59": ["波浪"], "60": ["大雪"]
+};
+// 現象 → レベル別の警報コード(2=注意報 3=警報 4=危険警報 5=特別警報)
+const PHENOMENON_CODES = {
+  "大雨":     { 2: "10", 3: "03", 4: "43", 5: "33" },
+  "土砂災害": { 2: "29", 3: "09", 4: "49", 5: "39" },
+  "高潮":     { 2: "19", 3: "08", 4: "48", 5: "38" },
+  "暴風":     { 2: "15", 3: "05", 5: "35" },
+  "暴風雪":   { 2: "13", 3: "02", 5: "32" },
+  "波浪":     { 2: "16", 3: "07", 5: "37" },
+  "大雪":     { 2: "12", 3: "06", 5: "36" },
+  "洪水":     { 2: "18", 3: "04" }
+};
+const PHEN_OF_CODE = {};
+for (const [phen, byLevel] of Object.entries(PHENOMENON_CODES)) {
+  for (const c of Object.values(byLevel)) PHEN_OF_CODE[c] = phen;
+}
+
+// Kind名(「大雨危険警報」「暴風雪特別警報」など)から警報コードを求める
+function xmlNameToCode(name) {
+  if (!name) return null;
+  let phen = null;
+  if (name.includes("風雪")) phen = "暴風雪";
+  else if (name.includes("暴風") || name.includes("強風")) phen = "暴風";
+  else if (name.includes("土砂")) phen = "土砂災害";
+  else if (name.includes("大雨")) phen = "大雨";
+  else if (name.includes("高潮")) phen = "高潮";
+  else if (name.includes("波浪")) phen = "波浪";
+  else if (name.includes("大雪")) phen = "大雪";
+  else if (name.includes("洪水")) phen = "洪水";
+  if (!phen) return null;
+  const level = name.includes("特別警報") ? 5
+    : name.includes("危険警報") ? 4
+    : name.includes("警報") ? 3
+    : name.includes("注意報") ? 2 : 0;
+  return PHENOMENON_CODES[phen][level] || null;
+}
+
+function xmlKids(el, name) {
+  return el ? Array.from(el.children).filter(c => c.localName === name) : [];
+}
+function xmlKid(el, name) { return xmlKids(el, name)[0] || null; }
+function xmlKidText(el, name) {
+  const k = xmlKid(el, name);
+  return k ? (k.textContent || "").trim() : "";
+}
+function toJstIso(ms) {
+  return new Date(ms + 9 * 3600 * 1000).toISOString().replace(/\.\d{3}Z$/, "+09:00");
+}
+
+// Kind 1件を { code, status, touched } に解釈する
+//   code    : JSONと同じ警報コード(解除・「発表警報・注意報はなし」は null)
+//   touched : この Kind が関係する現象(解除で消えるものも含む)
+function xmlResolveKind(kindEl) {
+  const status = xmlKidText(kindEl, "Status");
+  const name = xmlKidText(kindEl, "Name");
+  const rawCode = xmlKidText(kindEl, "Code");
+  const lastEl = xmlKid(kindEl, "LastKind");
+  const lastName = xmlKidText(lastEl, "Name");
+  const lastRawCode = xmlKidText(lastEl, "Code");
+  const lifted = status === "解除" || status === "発表警報・注意報はなし" || name === "解除";
+
+  const pick = (nm, raw) => {
+    const byName = xmlNameToCode(nm);
+    const byCode = raw && PHEN_OF_CODE[raw] ? raw : null;
+    return byName || byCode || null;
+  };
+
+  const code = lifted ? null : pick(name, rawCode);
+  const lastCode = pick(lastName, lastRawCode);
+  const touched = new Set();
+  for (const c of [code, lastCode]) {
+    if (c && PHEN_OF_CODE[c]) touched.add(PHEN_OF_CODE[c]);
+  }
+  return { code, status, touched };
+}
+
+// 警報XML(VPWW55〜60)1通を解析して、市町村ごとの警報コードにする
+function parseWarningXmlDoc(xmlText, url) {
+  const m = url.match(XML_DOC_URL_RE);
+  if (!m) return null;
+  const typeNo = m[1];
+  const office = m[2];
+
+  const doc = new DOMParser().parseFromString(xmlText, "application/xml");
+  if (doc.getElementsByTagName("parsererror").length) return null;
+  const root = doc.documentElement;
+
+  if (xmlKidText(xmlKid(root, "Control"), "Status") !== "通常") return null; // 訓練・試験は無視
+  const head = xmlKid(root, "Head");
+  if (xmlKidText(head, "InfoType") === "取消") return null;
+  const reportDateTime = xmlKidText(head, "ReportDateTime");
+  const reportMs = Date.parse(reportDateTime);
+  if (!Number.isFinite(reportMs)) return null;
+
+  const body = xmlKid(root, "Body");
+  let warnings = xmlKids(body, "Warning");
+  if (warnings.length === 0 && body) warnings = Array.from(body.getElementsByTagNameNS("*", "Warning"));
+  const warning = warnings.find(w => w.getAttribute("type") === XML_MUNICIPALITY_WARNING_TYPE);
+  if (!warning) return null;
+
+  const covers = new Set(XML_DOC_COVERS[typeNo] || []);
+  const cities = {};
+  for (const item of xmlKids(warning, "Item")) {
+    const areaEl = xmlKid(item, "Area") || item.getElementsByTagNameNS("*", "Area")[0] || null;
+    const cityCode = areaEl ? (xmlKidText(areaEl, "Code") || (areaEl.getElementsByTagNameNS("*", "Code")[0]?.textContent || "").trim()) : "";
+    if (!cityCode) continue;
+    const list = cities[cityCode] || (cities[cityCode] = []);
+    let kindEls = xmlKids(item, "Kind");
+    if (kindEls.length === 0) kindEls = Array.from(item.getElementsByTagNameNS("*", "Kind"));
+    for (const kindEl of kindEls) {
+      const r = xmlResolveKind(kindEl);
+      r.touched.forEach(p => covers.add(p));
+      if (r.code) list.push({ code: r.code, status: r.status });
+    }
+  }
+  return { typeNo, office, reportDateTime, reportMs, covers: Array.from(covers), cities };
+}
+
+// オーバーレイ: 府県予報区コード → 現象 → { reportMs, receivedAt, cities }
+const xmlOverlay = {};
+
+function mergeXmlDocIntoOverlay(parsed) {
+  let merged = false;
+  const byPhen = xmlOverlay[parsed.office] || (xmlOverlay[parsed.office] = {});
+  for (const phen of parsed.covers) {
+    const codesOfPhen = new Set(Object.values(PHENOMENON_CODES[phen] || {}));
+    if (codesOfPhen.size === 0) continue;
+    let ent = byPhen[phen];
+    if (ent && ent.reportMs > parsed.reportMs) continue; // より新しい電文が既にある
+    if (!ent) ent = byPhen[phen] = { reportMs: 0, receivedAt: Date.now(), cities: {} };
+    ent.reportMs = parsed.reportMs;
+    ent.receivedAt = Date.now();
+    // その電文に載っている市町村は、この現象の状態を電文の内容で置き換える
+    // (載っていない現象＝警報・注意報なし/解除 なので空配列になる)
+    for (const [cityCode, kinds] of Object.entries(parsed.cities)) {
+      ent.cities[cityCode] = kinds.filter(k => codesOfPhen.has(k.code));
+    }
+    merged = true;
+  }
+  return merged;
+}
+
+// fetchR8WarningData の結果(JSONレポートの配列)へオーバーレイを反映する
+function applyXmlOverlayToReports(reports) {
+  const byOffice = new Map();
+  for (const r of reports) {
+    if (!r || !r.warning) continue;
+    const key = String(r.regionCode);
+    if (!byOffice.has(key)) byOffice.set(key, []);
+    byOffice.get(key).push(r);
+  }
+
+  for (const [office, list] of byOffice) {
+    const byPhen = xmlOverlay[office];
+    if (!byPhen) continue;
+
+    const jsonMs = Math.max(0, ...list.map(r => Date.parse(r.reportDatetime)).filter(Number.isFinite));
+    let newestMs = 0;
+
+    for (const [phen, ent] of Object.entries(byPhen)) {
+      if (jsonMs >= ent.reportMs) { delete byPhen[phen]; continue; }          // JSONが追いついた
+      if (Date.now() - ent.receivedAt > XML_OVERLAY_TTL_MS) { delete byPhen[phen]; continue; }
+
+      const codesOfPhen = new Set(Object.values(PHENOMENON_CODES[phen] || {}));
+      const index = new Map();
+      for (const r of list) {
+        for (const it of (r.warning.class20Items || [])) index.set(it.areaCode, it);
+      }
+      for (const [cityCode, kinds] of Object.entries(ent.cities)) {
+        let it = index.get(cityCode);
+        if (!it) {
+          if (kinds.length === 0) continue;
+          it = { areaCode: cityCode, kinds: [] };
+          if (!list[0].warning.class20Items) list[0].warning.class20Items = [];
+          list[0].warning.class20Items.push(it);
+          index.set(cityCode, it);
+        }
+        it.kinds = (it.kinds || [])
+          .filter(k => !codesOfPhen.has(k.code))
+          .concat(kinds.map(k => ({ ...k })));
+      }
+      newestMs = Math.max(newestMs, ent.reportMs);
+    }
+
+    if (newestMs > 0) {
+      // 表示に使う発表時刻も電文時刻に合わせる(形式はJSONと同じISO/+09:00)
+      const iso = toJstIso(newestMs);
+      for (const r of list) {
+        if (!(Date.parse(r.reportDatetime) >= newestMs)) r.reportDatetime = iso;
+      }
+    }
+    if (Object.keys(byPhen).length === 0) delete xmlOverlay[office];
+  }
+}
+
+function xmlExtractDocUrls(feedText) {
+  const doc = new DOMParser().parseFromString(feedText, "application/xml");
+  if (doc.getElementsByTagName("parsererror").length) throw new Error("フィードのXML解析に失敗しました");
+  const urls = [];
+  for (const entry of Array.from(doc.getElementsByTagNameNS("*", "entry"))) {
+    const link = entry.getElementsByTagNameNS("*", "link")[0];
+    let href = (link && link.getAttribute("href")) || "";
+    if (!href) {
+      const id = entry.getElementsByTagNameNS("*", "id")[0];
+      href = id ? (id.textContent || "").trim() : "";
+    }
+    href = href.replace(/^http:\/\//i, "https://"); // 混在コンテンツ回避
+    if (XML_DOC_URL_RE.test(href)) urls.push(href);
+  }
+  return urls;
+}
+
+async function xmlFetchText(url, isFeed) {
+  // フィードは毎回サーバーへ再検証。電文は不変なので通常キャッシュ。
+  const res = await fetch(url, { cache: isFeed ? "no-cache" : "default" });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return await res.text();
+}
+
+// 1回分のフィード確認。更新ボタンの連打などで重複実行しないよう、
+// 実行中は同じPromiseを共有する。
+const xmlSeenUrls = new Set();
+let xmlRefreshPromise = null;
+
+function refreshXmlOverlay() {
+  if (!xmlRefreshPromise) {
+    xmlRefreshPromise = doRefreshXmlOverlay().finally(() => { xmlRefreshPromise = null; });
+  }
+  return xmlRefreshPromise;
+}
+
+async function doRefreshXmlOverlay() {
+  const statusEl = document.getElementById("xmlStatus");
+  try {
+    const urls = xmlExtractDocUrls(await xmlFetchText(XML_FEED_URL, true));
+    const base = u => u.slice(u.lastIndexOf("/") + 1);
+    // ファイル名の先頭が発表時刻なので、古い順に適用する
+    const fresh = urls.filter(u => !xmlSeenUrls.has(u))
+      .sort((a, b) => base(a).localeCompare(base(b)));
+
+    let merged = 0;
+    for (let i = 0; i < fresh.length; i += XML_FETCH_PARALLEL) {
+      const batch = fresh.slice(i, i + XML_FETCH_PARALLEL);
+      const texts = await Promise.allSettled(batch.map(u => xmlFetchText(u, false)));
+      batch.forEach((u, j) => {
+        if (texts[j].status !== "fulfilled") return; // 失敗分は次回の更新で再試行
+        xmlSeenUrls.add(u);
+        try {
+          const parsed = parseWarningXmlDoc(texts[j].value, u);
+          if (parsed && mergeXmlDocIntoOverlay(parsed)) merged++;
+        } catch (e) {
+          console.warn("[XML] 電文解析失敗:", base(u), e);
+        }
+      });
+    }
+    statusEl.textContent = `XML: 対象電文${urls.length}件（新着${fresh.length}件を解析、${merged}件を反映）`;
+  } catch (e) {
+    console.warn("[XML] フィード取得に失敗しました:", e);
+    statusEl.textContent = "XML: 取得できませんでした（JSONのみで表示）";
+  }
+}
+
+async function fetchR8WarningData(regionCodes) {
+  // JSONとXMLフィードを同時に取得し、XMLが新しい分だけ反映する
+  const [results] = await Promise.all([
+    Promise.all(regionCodes.map(async regionCode => {
+      const url = `${WARNING_R8_BASE_URL}/${regionCode}.json`;
+      try {
+        const res = await fetch(url, {cache:"no-store"});
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const reports = await res.json();
+        return reports.map(report => ({...report, regionCode}));
+      } catch(e) {
+        console.warn(`警報JSON取得失敗: ${url}`, e);
+        return [];
+      }
+    })),
+    refreshXmlOverlay()
+  ]);
+
+  const reports = results.flat();
+  applyXmlOverlayToReports(reports);
+  return reports;
 }
 
 function getWarnColor(level) {
