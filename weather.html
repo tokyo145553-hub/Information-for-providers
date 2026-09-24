@@ -523,8 +523,9 @@ function xmlActiveCodes(item, codes) {
 // fetchR8WarningData の結果(JSONレポートの配列)へオーバーレイを反映する
 // JSONが追いついたかどうかは「市町村 × 現象」ごとに判定する。
 //   ・JSONの発表時刻がXMLより新しい、または
-//   ・JSONの内容がXMLの内容と一致している(同時刻の別電文を片方だけ反映済み、を区別できる)
-// または同時刻でJSONがその現象を既に載せているときだけ、オーバーレイを破棄する。
+//   ・JSONの内容がXMLの内容と一致している
+// のどちらかのときだけオーバーレイを破棄する。同時刻でも内容が違えばXMLを優先する
+// (同時刻のJSONは、別電文が片方だけ反映済みで古い内容が残っている可能性があるため)。
 function applyXmlOverlayToReports(reports) {
   const byOffice = new Map();
   for (const r of reports) {
@@ -554,9 +555,8 @@ function applyXmlOverlayToReports(reports) {
         const same = want.size === have.size && [...want].every(c => have.has(c));
         const expired = Date.now() - ent.receivedAt > XML_OVERLAY_TTL_MS;
 
-        // JSONが追いついたか: 内容が一致 / JSONの方が新しい / 同時刻でJSONがその現象を既に載せている
-        // (同時刻でJSONにその現象が無い場合は、別電文の反映待ちとみなしてXMLを使い続ける)
-        const caught = same || jsonMs > ent.reportMs || (jsonMs === ent.reportMs && have.size > 0);
+        // JSONが追いついたか: 内容が一致 / JSONの方が新しい(同時刻で内容が違うならXMLを使う)
+                const caught = same || jsonMs > ent.reportMs;
         if (caught || expired) {
           if (caught) console.info(`[XML高速化] JSON追従: ${office} ${phen} ${cityCode} (電文発表から約${Math.round((Date.now() - ent.reportMs) / 1000)}秒)`);
           delete ents[cityCode];
@@ -703,7 +703,7 @@ function xmlDebug() {
 }
 
 function xmlSelfTest() {
-  const NAMES = { "02": "暴風雪警報", "03": "大雨警報", "05": "暴風警報", "09": "土砂災害警報", "10": "大雨注意報" };
+  const NAMES = { "02": "暴風雪警報", "03": "大雨警報", "05": "暴風警報", "09": "土砂災害警報", "10": "大雨注意報", "29": "土砂災害注意報", "49": "土砂災害危険警報" };
   const T = m => `2026-01-01T00:${String(m).padStart(2, "0")}:00+09:00`;
   const K = (n, s = "発表", l = "") =>
     `<Kind><Status>${s}</Status><Name>${n}</Name>${l ? `<LastKind><Name>${l}</Name></LastKind>` : ""}</Kind>`;
@@ -724,6 +724,8 @@ function xmlSelfTest() {
       [doc("58", 10, { A: [K("解除", "解除", "暴風警報")] })], J(5, { A: ["05", "02"] }), { A: "暴風雪警報" }],
     ["旧弱点", "古い電文が後着→他の市町村の変化を落とさない",
       [doc("55", 20, { B: [K("大雨警報")] }), doc("55", 10, { A: [K("大雨警報")] })], J(5, {}), { A: "大雨警報", B: "大雨警報" }],
+    ["同時刻", "同時刻でJSONが片方だけ反映済み(古い内容が残る)",
+      [doc("55", 10, { A: [K("大雨警報")] }), doc("56", 10, { A: [K("レベル2土砂災害注意報", "危険警報から注意報", "レベル4土砂災害危険警報")] })], J(10, { A: ["03", "49"] }), { A: "大雨警報+土砂災害注意報" }],
     ["追従", "JSONが後の時刻ならJSONを使う",
       [doc("55", 10, { A: [K("大雨警報")] })], J(15, { A: ["10"] }), { A: "大雨注意報" }]
   ];
